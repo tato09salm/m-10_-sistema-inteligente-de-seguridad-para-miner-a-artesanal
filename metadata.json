@@ -1,0 +1,6 @@
+{
+  "name": "M-10: Sistema Inteligente de Seguridad para Minería Artesanal",
+  "description": "Sistema integral de seguridad y monitoreo inteligente con IA para minería artesanal mediante sensores de smartphones (acelerómetro y giroscopio), detección de caídas, movimientos inusuales e inmovilidad prolongada.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
