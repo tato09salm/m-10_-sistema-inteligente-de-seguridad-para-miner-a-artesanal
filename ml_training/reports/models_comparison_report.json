@@ -1,0 +1,349 @@
+{
+  "timestamp": "2026-08-31 15:48:03",
+  "dataset": "SisFall (Universidad de Antioquia)",
+  "total_samples": 20064,
+  "input_shape": [
+    128,
+    8
+  ],
+  "classes": {
+    "0": "actividad_normal",
+    "1": "posible_caida",
+    "2": "inmovilidad_prolongada",
+    "3": "movimiento_inusual"
+  },
+  "best_model": {
+    "model_id": "Puro_1D_CNN",
+    "h5_file": "Puro_1D_CNN.h5",
+    "accuracy": 100.0,
+    "f1_score": 100.0,
+    "latency_ms": 0.23
+  },
+  "all_models": [
+    {
+      "model_id": "Puro_1D_CNN",
+      "description": "1. Puro: 1D-CNN (Red Convolucional 1D)",
+      "h5_file": "Puro_1D_CNN.h5",
+      "file_size_kb": 632.1,
+      "training_time_seconds": 72.98,
+      "epochs_trained": 6,
+      "metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "f1_score": 100.0,
+        "latency_ms": 0.23,
+        "confusion_matrix": [
+          [
+            1437,
+            0,
+            0
+          ],
+          [
+            0,
+            342,
+            0
+          ],
+          [
+            0,
+            0,
+            1231
+          ]
+        ],
+        "classification_report": {
+          "actividad_normal": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1437.0
+          },
+          "posible_caida": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 342.0
+          },
+          "inmovilidad_prolongada": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1231.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          }
+        }
+      }
+    },
+    {
+      "model_id": "Puro_Bi_LSTM",
+      "description": "2. Puro: Bi-LSTM (Bidirectional LSTM)",
+      "h5_file": "Puro_Bi_LSTM.h5",
+      "file_size_kb": 1035.6,
+      "training_time_seconds": 198.16,
+      "epochs_trained": 6,
+      "metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "f1_score": 100.0,
+        "latency_ms": 0.891,
+        "confusion_matrix": [
+          [
+            1437,
+            0,
+            0
+          ],
+          [
+            0,
+            342,
+            0
+          ],
+          [
+            0,
+            0,
+            1231
+          ]
+        ],
+        "classification_report": {
+          "actividad_normal": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1437.0
+          },
+          "posible_caida": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 342.0
+          },
+          "inmovilidad_prolongada": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1231.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          }
+        }
+      }
+    },
+    {
+      "model_id": "Puro_GRU",
+      "description": "3. Puro: GRU (Gated Recurrent Unit)",
+      "h5_file": "Puro_GRU.h5",
+      "file_size_kb": 556.0,
+      "training_time_seconds": 132.07,
+      "epochs_trained": 6,
+      "metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "f1_score": 100.0,
+        "latency_ms": 0.567,
+        "confusion_matrix": [
+          [
+            1437,
+            0,
+            0
+          ],
+          [
+            0,
+            342,
+            0
+          ],
+          [
+            0,
+            0,
+            1231
+          ]
+        ],
+        "classification_report": {
+          "actividad_normal": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1437.0
+          },
+          "posible_caida": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 342.0
+          },
+          "inmovilidad_prolongada": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1231.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          }
+        }
+      }
+    },
+    {
+      "model_id": "Hibrido_CNN_LSTM",
+      "description": "4. Hibrido: CNN-LSTM (Convolucional + Recurrente)",
+      "h5_file": "Hibrido_CNN_LSTM.h5",
+      "file_size_kb": 1021.1,
+      "training_time_seconds": 55.22,
+      "epochs_trained": 6,
+      "metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "f1_score": 100.0,
+        "latency_ms": 0.211,
+        "confusion_matrix": [
+          [
+            1437,
+            0,
+            0
+          ],
+          [
+            0,
+            342,
+            0
+          ],
+          [
+            0,
+            0,
+            1231
+          ]
+        ],
+        "classification_report": {
+          "actividad_normal": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1437.0
+          },
+          "posible_caida": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 342.0
+          },
+          "inmovilidad_prolongada": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1231.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          }
+        }
+      }
+    },
+    {
+      "model_id": "Hibrido_Attention_ResGRU",
+      "description": "5. Hibrido: Conv1D + Attention + Residual GRU",
+      "h5_file": "Hibrido_Attention_ResGRU.h5",
+      "file_size_kb": 416.7,
+      "training_time_seconds": 95.27,
+      "epochs_trained": 6,
+      "metrics": {
+        "accuracy": 100.0,
+        "precision": 100.0,
+        "recall": 100.0,
+        "f1_score": 100.0,
+        "latency_ms": 0.448,
+        "confusion_matrix": [
+          [
+            1437,
+            0,
+            0
+          ],
+          [
+            0,
+            342,
+            0
+          ],
+          [
+            0,
+            0,
+            1231
+          ]
+        ],
+        "classification_report": {
+          "actividad_normal": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1437.0
+          },
+          "posible_caida": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 342.0
+          },
+          "inmovilidad_prolongada": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1231.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 3010.0
+          }
+        }
+      }
+    }
+  ]
+}

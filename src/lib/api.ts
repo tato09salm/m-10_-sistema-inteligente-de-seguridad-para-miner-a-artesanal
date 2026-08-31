@@ -116,4 +116,31 @@ export const api = {
     });
     return res.json();
   },
+
+  async login(credentials: { email: string; password: string }): Promise<{ success: boolean; token: string; user: SystemUser; message?: string }> {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al iniciar sesión' }));
+      throw new Error(err.detail || 'Credenciales inválidas');
+    }
+    return res.json();
+  },
+
+  async getAiModelsReport() {
+    const res = await fetch('/api/ai/models/report');
+    return res.json();
+  },
+
+  async logout(): Promise<{ success: boolean }> {
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      return res.json();
+    } catch {
+      return { success: true };
+    }
+  },
 };

@@ -8,7 +8,8 @@ import {
   BarChart3, 
   History, 
   ShieldCheck,
-  Radio
+  Radio,
+  LogOut
 } from 'lucide-react';
 
 export type NavTab = 
@@ -27,6 +28,7 @@ interface SidebarProps {
   activeAlertsCount: number;
   criticalAlertsCount: number;
   highRiskWorkersCount: number;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeAlertsCount,
   criticalAlertsCount,
   highRiskWorkersCount,
+  onLogout,
 }) => {
   const navItems = [
     {
@@ -163,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Bottom Live System Telemetry Status Badge */}
-      <div className="p-4 border-t border-[#D4AF37]/10">
+      <div className="p-4 border-t border-[#D4AF37]/10 space-y-3">
         <div className="bg-[#1F2229] rounded-xl p-3.5 border border-[#C0C0C0]/10 space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium flex items-center gap-1.5">
@@ -173,10 +176,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></div>
           </div>
           <div className="flex justify-between items-center text-xs font-mono">
-            <span className="text-silver">v2.4.0-STABLE</span>
+            <span className="text-silver">v3.2.0-FASTAPI</span>
             <span className="text-emerald-400 font-bold">99.8% ONLINE</span>
           </div>
         </div>
+
+        {onLogout && (
+          <button
+            id="btn-logout-sidebar"
+            onClick={onLogout}
+            className="w-full py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Cerrar Sesión</span>
+          </button>
+        )}
       </div>
     </aside>
   );

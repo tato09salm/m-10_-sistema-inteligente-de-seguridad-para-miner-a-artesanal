@@ -1,0 +1,33 @@
+{
+  "dataset_name": "SisFall Benchmark Preprocessed",
+  "sampling_rate_hz": 50,
+  "window_size": 128,
+  "step_size": 64,
+  "channels": [
+    "accel_x",
+    "accel_y",
+    "accel_z",
+    "gyro_x",
+    "gyro_y",
+    "gyro_z",
+    "svm",
+    "gyro_norm"
+  ],
+  "class_mapping": {
+    "0": "actividad_normal",
+    "1": "posible_caida",
+    "2": "inmovilidad_prolongada",
+    "3": "movimiento_inusual"
+  },
+  "splits": {
+    "train": 14044,
+    "val": 3010,
+    "test": 3010,
+    "total": 20064
+  },
+  "class_distribution": {
+    "actividad_normal": 9576,
+    "posible_caida": 2280,
+    "inmovilidad_prolongada": 8208
+  }
+}

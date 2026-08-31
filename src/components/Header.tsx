@@ -4,9 +4,10 @@ import {
   Database, 
   Volume2, 
   VolumeX, 
-  QrCode,
-  Flame,
-  AlertOctagon
+  QrCode, 
+  Flame, 
+  AlertOctagon,
+  LogOut
 } from 'lucide-react';
 import { SystemUser, UserRole } from '../types';
 
@@ -19,6 +20,7 @@ interface HeaderProps {
   onOpenLiveMobile: () => void;
   onOpenPostgresSchema: () => void;
   criticalAlertsCount: number;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLiveMobile,
   onOpenPostgresSchema,
   criticalAlertsCount,
+  onLogout,
 }) => {
   // Get initials
   const initials = currentUser.name
@@ -137,6 +140,17 @@ export const Header: React.FC<HeaderProps> = ({
             <option value="supervisor">Supervisor</option>
             <option value="rescatista">Paramédico</option>
           </select>
+
+          {onLogout && (
+            <button
+              id="btn-logout-header"
+              onClick={onLogout}
+              title="Cerrar Sesión"
+              className="p-1.5 rounded-lg bg-[#1F2229] border border-red-500/20 text-gray-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
       </div>

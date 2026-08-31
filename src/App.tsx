@@ -12,6 +12,7 @@ import { UsersSecurityView } from './components/UsersSecurityView';
 import { SmartphoneSimulatorModal } from './components/SmartphoneSimulatorModal';
 import { LivePhoneConnectModal } from './components/LivePhoneConnectModal';
 import { PostgresSchemaModal } from './components/PostgresSchemaModal';
+import { LoginView } from './components/LoginView';
 import { api } from './lib/api';
 import { playEmergencySiren } from './lib/soundEffects';
 import { 
@@ -26,6 +27,10 @@ import {
 import { INITIAL_WORKERS, INITIAL_ALERTS, SYSTEM_USERS, AUDIT_LOGS, generateInitialTelemetryHistory } from './lib/mockData';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return Boolean(localStorage.getItem('m10_auth_token'));
+  });
+
   const [currentModule, setCurrentModule] = useState<string>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -36,7 +41,14 @@ export default function App() {
   const [telemetryHistory, setTelemetryHistory] = useState<SensorTelemetry[]>(() => generateInitialTelemetryHistory(INITIAL_WORKERS[0].id));
   const [users, setUsers] = useState<SystemUser[]>(SYSTEM_USERS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(AUDIT_LOGS);
-  const [currentUser, setCurrentUser] = useState<SystemUser>(SYSTEM_USERS[0]);
+  const [currentUser, setCurrentUser] = useState<SystemUser>(() => {
+    try {
+      const stored = localStorage.getItem('m10_auth_user');
+      return stored ? JSON.parse(stored) : SYSTEM_USERS[0];
+    } catch {
+      return SYSTEM_USERS[0];
+    }
+  });
 
   // Modals and Audio
   const [isSimModalOpen, setIsSimModalOpen] = useState(false);
@@ -141,10 +153,30 @@ export default function App() {
   const handleRoleChange = (role: UserRole) => {
     const userMatch = users.find(u => u.role === role) || users[0];
     setCurrentUser(userMatch);
+    localStorage.setItem('m10_auth_user', JSON.stringify(userMatch));
   };
 
-  const activeAlertsCount = alerts.filter(a => a.status === 'activa').length;
+  // Handle Login & Logout
+  const handleLoginSuccess = (user: SystemUser) => {
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    localStorage.setItem('m10_auth_token', 'true');
+    localStorage.setItem('m10_auth_user', JSON.stringify(user));
+  };
 
+  const handleLogout = async () => {
+    await api.logout();
+    localStorage.removeItem('m10_auth_token');
+    localStorage.removeItem('m10_auth_user');
+    setIsAuthenticated(false);
+  };
+
+  // If not authenticated, display LoginView
+  if (!isAuthenticated) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const activeAlertsCount = alerts.filter(a => a.status === 'activa').length;
   const criticalAlertsCount = alerts.filter(a => a.status === 'activa' && a.priority === 'critica').length;
   const highRiskWorkersCount = workers.filter(w => w.riskLevel === 'alto').length;
 
@@ -161,6 +193,7 @@ export default function App() {
         activeAlertsCount={activeAlertsCount}
         criticalAlertsCount={criticalAlertsCount}
         highRiskWorkersCount={highRiskWorkersCount}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -176,6 +209,7 @@ export default function App() {
           onOpenLiveMobile={() => setIsPhoneConnectModalOpen(true)}
           onOpenPostgresSchema={() => setIsPostgresModalOpen(true)}
           criticalAlertsCount={criticalAlertsCount}
+          onLogout={handleLogout}
         />
 
         {/* Dynamic View Router */}
