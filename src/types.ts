@@ -17,9 +17,9 @@ export interface Worker {
   shift: 'Mañana' | 'Tarde' | 'Noche';
   status: WorkerStatus;
   riskLevel: RiskLevel;
-  deviceUuid: string;
-  deviceBattery: number; // 0 - 100
-  signalStrength: number; // dBm e.g. -65
+  deviceUuid?: string;
+  deviceBattery?: number; // 0 - 100
+  signalStrength?: number; // dBm e.g. -65
   emergencyContact: {
     name: string;
     phone: string;
@@ -133,3 +133,52 @@ export interface DashboardStats {
     activeSensors: number;
   };
 }
+
+export type TunnelType = 'rampa' | 'galeria' | 'chimenea_pique' | 'tajo_explotacion' | 'cruce';
+export type TunnelStatus = 'activo' | 'mantenimiento' | 'restringido' | 'inactivo';
+export type TunnelConnectionType = 'bifurcacion_y' | 'cruce_x' | 'chimenea_vertical' | 'rampa_inclinada' | 'compuerta';
+export type TunnelConnectionStatus = 'abierto' | 'bloqueado' | 'enmaderado' | 'en_mantenimiento';
+
+export interface MineTunnel {
+  id: string;
+  code: string;
+  name: string;
+  tunnelType: TunnelType;
+  status: TunnelStatus;
+  elevation: number;
+  startX: number;
+  startY: number;
+  startZ: number;
+  endX: number;
+  endY: number;
+  endZ: number;
+  lengthMeters: number;
+  widthMeters: number;
+  heightMeters: number;
+  ventilationStatus: 'optimo' | 'regular' | 'deficiente' | 'critico';
+  riskLevel: RiskLevel;
+  description?: string;
+  createdAt?: string;
+  connections?: TunnelConnection[];
+}
+
+export interface TunnelConnection {
+  id: string;
+  sourceTunnelId: string;
+  targetTunnelId: string;
+  connectionType: TunnelConnectionType;
+  junctionPoint: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  distanceMeters: number;
+  status: TunnelConnectionStatus;
+  notes?: string;
+  createdAt?: string;
+  sourceCode?: string;
+  sourceName?: string;
+  targetCode?: string;
+  targetName?: string;
+}
+

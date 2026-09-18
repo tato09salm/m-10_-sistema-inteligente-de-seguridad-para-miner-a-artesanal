@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Users, 
   AlertTriangle, 
@@ -10,7 +10,9 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle2,
-  HardHat
+  HardHat,
+  Layers,
+  Cable
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -19,7 +21,8 @@ import {
   Cell, 
   Tooltip 
 } from 'recharts';
-import { Worker, Alert, MiningSector, DashboardStats } from '../types';
+import { Worker, Alert, MiningSector, DashboardStats, MineTunnel, TunnelConnection } from '../types';
+import { MineMap3D } from './MineMap3D';
 
 interface DashboardViewProps {
   workers: Worker[];
@@ -29,16 +32,25 @@ interface DashboardViewProps {
   onSelectWorker: (worker: Worker) => void;
   onAttendAlert?: (alert: Alert) => void;
   stats?: DashboardStats;
+  tunnels?: MineTunnel[];
+  connections?: TunnelConnection[];
 }
 
-const SECTORS: { name: MiningSector; depth: string; hazardLevel: 'bajo' | 'medio' | 'alto' | 'critico'; coords: { x: number; y: number } }[] = [
-  { name: 'Socavón Principal', depth: '0m (Bocamina)', hazardLevel: 'bajo', coords: { x: 20, y: 25 } },
-  { name: 'Nivel -50m', depth: '-50m Subterráneo', hazardLevel: 'medio', coords: { x: 45, y: 40 } },
-  { name: 'Galería Norte', depth: '-75m Subterráneo', hazardLevel: 'alto', coords: { x: 75, y: 35 } },
-  { name: 'Chimenea 3', depth: '-90m Vertical', hazardLevel: 'medio', coords: { x: 30, y: 65 } },
-  { name: 'Nivel -120m', depth: '-120m Fondo', hazardLevel: 'critico', coords: { x: 60, y: 80 } },
-  { name: 'Frente de Extracción', depth: '-135m Veta Oro', hazardLevel: 'bajo', coords: { x: 85, y: 75 } },
+const DEFAULT_SECTORS: { name: MiningSector; depth: string; hazardLevel: 'bajo' | 'medio' | 'alto' | 'critico'; coords: { x: number; y: number } }[] = [
+  { name: 'Socavón Principal', depth: '0m (Bocamina)', hazardLevel: 'bajo', coords: { x: 18, y: 24 } },
+  { name: 'Nivel -50m', depth: '-50m Subterráneo', hazardLevel: 'medio', coords: { x: 44, y: 38 } },
+  { name: 'Galería Norte', depth: '-75m Subterráneo', hazardLevel: 'alto', coords: { x: 74, y: 30 } },
+  { name: 'Chimenea 3', depth: '-90m Vertical', hazardLevel: 'medio', coords: { x: 26, y: 68 } },
+  { name: 'Nivel -120m', depth: '-120m Fondo', hazardLevel: 'critico', coords: { x: 58, y: 74 } },
+  { name: 'Frente de Extracción', depth: '-135m Veta Oro', hazardLevel: 'bajo', coords: { x: 84, y: 66 } },
 ];
+
+function getOrthogonalPath2D(x1: number, y1: number, x2: number, y2: number): string {
+  if (Math.abs(y1 - y2) < 1.5) return `M ${x1}% ${y1}% L ${x2}% ${y2}%`;
+  if (Math.abs(x1 - x2) < 1.5) return `M ${x1}% ${y1}% L ${x1}% ${y2}%`;
+  const midX = (x1 + x2) / 2;
+  return `M ${x1}% ${y1}% L ${midX}% ${y1}% L ${midX}% ${y2}% L ${x2}% ${y2}%`;
+}
 
 const ACTIVITY_DISTRIBUTION = [
   { name: 'Actividad Normal', value: 78, color: '#D4AF37' },
@@ -54,6 +66,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToTab,
   onSelectWorker,
   onAttendAlert,
+  tunnels = [],
+  connections = [],
 }) => {
   const navigate = onNavigate || onNavigateToTab || (() => {});
   const activeAlerts = alerts.filter(a => a.status === 'activa');
@@ -61,6 +75,96 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const fallsToday = alerts.filter(a => a.type === 'caida_detectada').length;
   const immobilityToday = alerts.filter(a => a.type === 'inmovilidad_prolongada').length;
   const unusualToday = alerts.filter(a => a.type === 'movimiento_brusco').length;
+  const [mapViewMode, setMapViewMode] = useState<'3d' | '2d'>('3d');
+
+  // Dynamic 2D Sectors from registered tunnels or fallback
+  const activeSectors2D = React.useMemo(() => {
+    if (!tunnels || tunnels.length === 0) return DEFAULT_SECTORS;
+
+    const defaultPositions2D: Record<string, { x: number; y: number }> = {
+      'Socavón Principal': { x: 18, y: 24 },
+      'Bocamina Principal': { x: 18, y: 24 },
+      'Nivel -50m': { x: 44, y: 38 },
+      'Galería Norte': { x: 74, y: 30 },
+      'Chimenea 3': { x: 26, y: 68 },
+      'Nivel -120m': { x: 58, y: 74 },
+      'Frente de Extracción': { x: 84, y: 66 },
+      'Galería Central By-pass': { x: 48, y: 54 },
+    };
+
+    return tunnels.map((t, idx) => {
+      let coords = defaultPositions2D[t.name];
+      if (!coords && t.description && t.description.includes('pos:')) {
+        const match = t.description.match(/pos:([\d.]+),([\d.]+)/);
+        if (match) coords = { x: parseFloat(match[1]), y: parseFloat(match[2]) };
+      }
+      if (!coords) {
+        const cols = Math.max(3, Math.ceil(Math.sqrt(tunnels.length)));
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
+        coords = {
+          x: 18 + (col * 64) / Math.max(cols - 1, 1),
+          y: 24 + (row * 52) / Math.max(Math.ceil(tunnels.length / cols) - 1, 1),
+        };
+      }
+
+      return {
+        id: t.id,
+        name: t.name as MiningSector,
+        depth: `${t.elevation}m Subterráneo`,
+        hazardLevel: t.riskLevel,
+        coords,
+      };
+    });
+  }, [tunnels]);
+
+  // Map sector ID and name to coordinates for 2D cable rendering
+  const sectorCoordsMap = React.useMemo(() => {
+    const map = new Map<string, { x: number; y: number }>();
+    activeSectors2D.forEach(s => {
+      if ((s as any).id) map.set((s as any).id, s.coords);
+      map.set(s.name, s.coords);
+      map.set(s.name.toLowerCase().trim(), s.coords);
+    });
+    return map;
+  }, [activeSectors2D]);
+
+  // Dynamic 2D Active Connections
+  const activeConnections2D = React.useMemo(() => {
+    const CABLE_COLORS = ['#FBBF24', '#38BDF8', '#34D399', '#C084FC', '#FB7185', '#A3E635'];
+
+    if (!connections || connections.length === 0) {
+      if (tunnels && tunnels.length > 0) return [];
+      // Default sample connections when no tunnels registered yet
+      return [
+        { p1: { x: 18, y: 24 }, p2: { x: 44, y: 38 }, color: '#FBBF24', dist: 45, id: 'd1' },
+        { p1: { x: 44, y: 38 }, p2: { x: 74, y: 30 }, color: '#38BDF8', dist: 62, id: 'd2' },
+        { p1: { x: 44, y: 38 }, p2: { x: 26, y: 68 }, color: '#34D399', dist: 55, id: 'd3' },
+        { p1: { x: 26, y: 68 }, p2: { x: 58, y: 74 }, color: '#FB7185', dist: 78, id: 'd4' },
+      ];
+    }
+
+    const res: { p1: { x: number; y: number }; p2: { x: number; y: number }; color: string; dist: number; id: string }[] = [];
+
+    connections.forEach((c, idx) => {
+      const p1 = sectorCoordsMap.get(c.sourceTunnelId) || 
+                 (c.sourceName ? sectorCoordsMap.get(c.sourceName.toLowerCase().trim()) : undefined);
+      const p2 = sectorCoordsMap.get(c.targetTunnelId) || 
+                 (c.targetName ? sectorCoordsMap.get(c.targetName.toLowerCase().trim()) : undefined);
+
+      if (p1 && p2) {
+        res.push({
+          p1,
+          p2,
+          color: c.status === 'bloqueado' ? '#EF4444' : CABLE_COLORS[idx % CABLE_COLORS.length],
+          dist: c.distanceMeters || 35,
+          id: c.id,
+        });
+      }
+    });
+
+    return res;
+  }, [connections, sectorCoordsMap, tunnels]);
 
   return (
     <div className="space-y-6">
@@ -185,106 +289,248 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Middle Grid: Telemetry & Subterranean Map + AI Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left 8 Cols: Subterranean Interactive Mine Sector Map */}
-        <div className="lg:col-span-8 bg-[#1A1C22] rounded-2xl border border-[#D4AF37]/10 p-5 lg:p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
+        {/* Left 8 Cols: Subterranean Interactive Mine Sector Map (3D / 2D) */}
+        <div className="lg:col-span-8 bg-[#1A1C22] rounded-2xl border border-[#D4AF37]/10 p-5 lg:p-6 shadow-2xl flex flex-col justify-between relative">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#D4AF37] rounded-full animate-pulse"></span>
-                Mapa Esquemático de Socavones & Mineros
-              </h2>
-              <p className="text-[11px] text-gray-400">
-                Puntos de monitoreo en tiempo real por socavón, chimenea y niveles de extracción.
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-2.5 h-2.5 bg-[#D4AF37] rounded-full animate-pulse"></span>
+                <h2 className="text-sm sm:text-base font-bold text-white tracking-wide">
+                  Mapa de Socavones & Mineros en Tiempo Real
+                </h2>
+                <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30 uppercase">
+                  {mapViewMode === '3d' ? '3D INTERACTIVO' : 'PLANO 2D'}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <Cable className="w-2.5 h-2.5" /> {(connections || []).length} CABLES ACTIVOS
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                Topografía subterránea y ubicación de mineros en socavones, niveles de extracción y chimeneas.
               </p>
             </div>
-            <div className="flex items-center gap-3 text-[10px] uppercase font-mono tracking-wider">
-              <span className="flex items-center gap-1.5 text-gray-300">
-                <span className="w-2 h-2 rounded-full bg-[#D4AF37]" /> Normal
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-300">
-                <span className="w-2 h-2 rounded-full bg-[#B87333]" /> Medio
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-300">
-                <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" /> Crítico
-              </span>
+
+            {/* Quick Actions & View Mode Switcher */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('socavones')}
+                className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-white/5 hover:bg-[#D4AF37]/20 border border-white/10 hover:border-[#D4AF37]/40 text-gray-300 hover:text-[#D4AF37] flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                title="Tender o gestionar cables entre socavones"
+              >
+                <Cable className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Conectar Socavones</span>
+              </button>
+
+              <div className="flex items-center gap-1 bg-[#0F1115] p-1 rounded-xl border border-white/10 shrink-0">
+                <button
+                  id="btn-map-mode-3d"
+                  onClick={() => setMapViewMode('3d')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    mapViewMode === '3d'
+                      ? 'bg-[#D4AF37] text-black shadow-md font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                  title="Ver Modelo 3D Subterráneo con rotación, profundidad y zoom"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Vista 3D</span>
+                </button>
+
+                <button
+                  id="btn-map-mode-2d"
+                  onClick={() => setMapViewMode('2d')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    mapViewMode === '2d'
+                      ? 'bg-[#D4AF37] text-black shadow-md font-bold'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                  title="Ver Esquema 2D Tradicional"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Plano 2D</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Isometric Mine Schematic Canvas */}
-          <div className="w-full h-80 rounded-xl bg-[#0F1115] border border-white/5 relative overflow-hidden p-4">
-            {/* Gallery connection tunnels (drawn with SVG) */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40">
-              <line x1="20%" y1="25%" x2="45%" y2="40%" stroke="#D4AF37" strokeWidth="2" strokeDasharray="4 2" />
-              <line x1="45%" y1="40%" x2="75%" y2="35%" stroke="#B87333" strokeWidth="2" />
-              <line x1="45%" y1="40%" x2="30%" y2="65%" stroke="#C0C0C0" strokeWidth="2" />
-              <line x1="30%" y1="65%" x2="60%" y2="80%" stroke="#EF4444" strokeWidth="2.5" strokeDasharray="6 3" />
-              <line x1="60%" y1="80%" x2="85%" y2="75%" stroke="#D4AF37" strokeWidth="2" />
-            </svg>
+          {/* 3D WebGL Mine Visualization */}
+          {mapViewMode === '3d' ? (
+            <div className="w-full">
+              <MineMap3D
+                workers={workers}
+                alerts={alerts}
+                tunnels={tunnels}
+                connections={connections}
+                onSelectWorker={onSelectWorker}
+                onNavigateToMonitoring={(w) => navigate('monitoring')}
+                onNavigateToSocavones={() => navigate('socavones')}
+              />
+            </div>
+          ) : (
+            /* 2D Subterranean Schematic with Dynamic Orthogonal Continuous Cables */
+            <div className="w-full h-84 rounded-xl bg-[#0F1115] border border-white/5 relative overflow-hidden p-4">
+              {/* Grid Background */}
+              <div 
+                className="absolute inset-0 pointer-events-none opacity-15"
+                style={{
+                  backgroundImage: 'radial-gradient(circle at 50% 50%, #D4AF37 1px, transparent 1px)',
+                  backgroundSize: '32px 32px'
+                }}
+              />
 
-            {/* Mine Sectors Nodes */}
-            {SECTORS.map((sector) => {
-              const sectorWorkers = workers.filter(w => w.sector === sector.name);
-              const hasHazard = sectorWorkers.some(w => w.status === 'peligro');
-              const hasWarning = sectorWorkers.some(w => w.status === 'advertencia');
+              {/* Dynamic SVG Continuous Orthogonal Cables */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+                <defs>
+                  <filter id="dash-cable-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#D4AF37" floodOpacity="0.6" />
+                  </filter>
+                </defs>
 
-              return (
-                <div
-                  key={sector.name}
-                  style={{ left: `${sector.coords.x}%`, top: `${sector.coords.y}%` }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-                >
-                  <div className="relative">
-                    {hasHazard && (
-                      <span className="absolute -inset-2 rounded-full bg-red-500/40 animate-ping" />
-                    )}
+                {activeConnections2D.map((conn, cIdx) => {
+                  const p1 = conn.p1;
+                  const p2 = conn.p2;
+                  const path = getOrthogonalPath2D(p1.x, p1.y, p2.x, p2.y);
+                  const midX = (p1.x + p2.x) / 2;
+                  const midY = (p1.y + p2.y) / 2;
+                  const color = conn.color;
 
-                    <div className={`px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all shadow-md flex items-center gap-1.5 ${
-                      hasHazard 
-                        ? 'bg-red-950 border-red-500 text-red-200' 
-                        : hasWarning 
-                        ? 'bg-[#B87333]/20 border-[#B87333] text-[#FDBA74]' 
-                        : 'bg-[#1F2229] border-[#C0C0C0]/20 text-gray-200 hover:border-[#D4AF37]'
-                    }`}>
-                      <MapPin className={`w-3.5 h-3.5 ${hasHazard ? 'text-red-400 animate-bounce' : hasWarning ? 'text-[#B87333]' : 'text-[#D4AF37]'}`} />
-                      <span>{sector.name}</span>
-                      <span className="text-[10px] font-mono px-1 rounded bg-[#0F1115] text-gray-300">
-                        {sectorWorkers.length}
-                      </span>
-                    </div>
+                  return (
+                    <g key={conn.id || cIdx}>
+                      {/* Outer Glow */}
+                      <path
+                        d={path}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth="6"
+                        strokeOpacity="0.3"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        filter="url(#dash-cable-glow)"
+                      />
+                      {/* Core Continuous Cable */}
+                      <path
+                        d={path}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth="2.5"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      />
+                      {/* Elbow markers */}
+                      <circle cx={`${midX}%`} cy={`${p1.y}%`} r="2.5" fill={color} opacity="0.8" />
+                      <circle cx={`${midX}%`} cy={`${p2.y}%`} r="2.5" fill={color} opacity="0.8" />
 
-                    {/* Sector Tooltip */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-[#1A1C22] border border-[#D4AF37]/20 rounded-lg p-2.5 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-                      <div className="text-[11px] font-bold text-white">{sector.name}</div>
-                      <div className="text-[10px] text-gray-400">{sector.depth}</div>
-                      <div className="mt-1 pt-1 border-t border-white/5 space-y-1">
-                        {sectorWorkers.map(w => (
-                          <div key={w.id} className="text-[10px] flex items-center justify-between text-gray-300">
-                            <span>{w.name.split(' ')[0]}</span>
-                            <span className={`px-1 rounded text-[9px] ${
-                              w.status === 'peligro' ? 'bg-red-500/20 text-red-300' :
-                              w.status === 'advertencia' ? 'bg-[#B87333]/20 text-[#FDBA74]' :
-                              'bg-emerald-500/20 text-emerald-300'
-                            }`}>
-                              {w.status}
-                            </span>
-                          </div>
-                        ))}
+                      {/* Compact Distance Badge */}
+                      <foreignObject
+                        x={`calc(${midX}% - 24px)`}
+                        y={`calc(${midY}% - 9px)`}
+                        width="48"
+                        height="18"
+                        className="overflow-visible"
+                      >
+                        <div 
+                          className="px-1 py-0.2 rounded-full text-[8px] font-mono text-center font-bold bg-[#121418]/90 text-gray-200 border shadow-md"
+                          style={{ borderColor: color }}
+                        >
+                          {conn.dist}m
+                        </div>
+                      </foreignObject>
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {/* Dynamic Mine Socavón Nodes */}
+              {activeSectors2D.map((sector) => {
+                const sectorWorkers = workers.filter(w => w.sector === sector.name);
+                const hasHazard = sectorWorkers.some(w => w.status === 'peligro');
+                const hasWarning = sectorWorkers.some(w => w.status === 'advertencia');
+                const connectedCount = (connections || []).filter(c => 
+                  c.sourceTunnelId === (sector as any).id || c.targetTunnelId === (sector as any).id ||
+                  c.sourceName === sector.name || c.targetName === sector.name
+                ).length;
+
+                return (
+                  <div
+                    key={sector.name}
+                    style={{ left: `${sector.coords.x}%`, top: `${sector.coords.y}%` }}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer z-20"
+                    onClick={() => navigate('socavones')}
+                    title={`Ver socavón ${sector.name} (${connectedCount} cables conectados)`}
+                  >
+                    <div className="relative">
+                      {hasHazard && (
+                        <span className="absolute -inset-2 rounded-full bg-red-500/40 animate-ping pointer-events-none" />
+                      )}
+
+                      <div className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-md flex items-center gap-1.5 ${
+                        hasHazard 
+                          ? 'bg-red-950 border-red-500 text-red-200 shadow-red-500/30' 
+                          : hasWarning 
+                          ? 'bg-[#B87333]/20 border-[#B87333] text-[#FDBA74]' 
+                          : 'bg-[#1F2229] border-[#C0C0C0]/20 text-gray-200 hover:border-[#D4AF37] hover:shadow-lg'
+                      }`}>
+                        <MapPin className={`w-3.5 h-3.5 ${hasHazard ? 'text-red-400 animate-bounce' : hasWarning ? 'text-[#B87333]' : 'text-[#D4AF37]'}`} />
+                        <span className="truncate max-w-[110px]">{sector.name}</span>
+                        <span className="text-[10px] font-mono px-1 rounded bg-[#0F1115] text-gray-300">
+                          {sectorWorkers.length}
+                        </span>
+                        {connectedCount > 0 && (
+                          <span className="text-[9px] font-mono text-[#D4AF37] font-bold" title={`${connectedCount} cables conectados`}>
+                            ·{connectedCount}⚡
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Lateral Connection Pins ("de cuadrado a cuadrado") */}
+                      <span className={`absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border ${
+                        connectedCount > 0 ? 'bg-amber-400 border-amber-300' : 'bg-gray-700 border-gray-600'
+                      }`} />
+                      <span className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border ${
+                        connectedCount > 0 ? 'bg-amber-400 border-amber-300' : 'bg-gray-700 border-gray-600'
+                      }`} />
+
+                      {/* Sector Tooltip */}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-[#1A1C22] border border-[#D4AF37]/20 rounded-lg p-2.5 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
+                        <div className="text-[11px] font-bold text-white flex items-center justify-between">
+                          <span>{sector.name}</span>
+                          <span className="text-[9px] text-[#D4AF37] font-mono">{connectedCount} cables</span>
+                        </div>
+                        <div className="text-[10px] text-gray-400">{sector.depth}</div>
+                        <div className="mt-1 pt-1 border-t border-white/5 space-y-1">
+                          {sectorWorkers.length === 0 ? (
+                            <div className="text-[9px] text-gray-500 italic">Sin mineros asignados</div>
+                          ) : (
+                            sectorWorkers.map(w => (
+                              <div key={w.id} className="text-[10px] flex items-center justify-between text-gray-300">
+                                <span>{w.name.split(' ')[0]}</span>
+                                <span className={`px-1 rounded text-[9px] ${
+                                  w.status === 'peligro' ? 'bg-red-500/20 text-red-300' :
+                                  w.status === 'advertencia' ? 'bg-[#B87333]/20 text-[#FDBA74]' :
+                                  'bg-emerald-500/20 text-emerald-300'
+                                }`}>
+                                  {w.status}
+                                </span>
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
-          <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
             <span className="flex items-center gap-1.5 font-mono text-[11px]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Gateway Socavón: Mesh LoRa/Wi-Fi Subterráneo Activo
             </span>
             <button
               onClick={() => navigate('monitoring')}
-              className="text-[#D4AF37] hover:text-white flex items-center gap-1 font-semibold transition-colors"
+              className="text-[#D4AF37] hover:text-white flex items-center gap-1 font-semibold transition-colors cursor-pointer"
             >
               Ver osciloscopio en vivo <ArrowRight className="w-3.5 h-3.5" />
             </button>

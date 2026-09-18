@@ -1,7 +1,7 @@
 import math
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
-from backend.models import MiningSector, Worker, SensorTelemetry, SafetyAlert, SystemUser, AuditLog
+from backend.models import MiningSector, Worker, SensorTelemetry, SafetyAlert, SystemUser, AuditLog, MineTunnel, TunnelConnection
 
 def seed_database(db: Session):
     # Check if sectors exist
@@ -392,3 +392,188 @@ def seed_database(db: Session):
         ]
         db.add_all(logs)
         db.commit()
+
+    # Check if mine tunnels exist
+    if db.query(MineTunnel).count() == 0:
+        tunnels = [
+            MineTunnel(
+                id="soc-1",
+                code="BOC-01",
+                name="Bocamina Principal Esperanza (Nivel 0)",
+                tunnel_type="galeria",
+                status="activo",
+                elevation=0.0,
+                start_x=0.0,
+                start_y=0.0,
+                start_z=0.0,
+                end_x=120.0,
+                end_y=10.0,
+                end_z=-5.0,
+                length_meters=120.5,
+                width_meters=2.8,
+                height_meters=2.5,
+                ventilation_status="optimo",
+                risk_level="bajo",
+                description="Bocamina de ingreso principal y transporte de mineral en carros sobre riel Decauville.",
+            ),
+            MineTunnel(
+                id="soc-2",
+                code="RMP-SJ-01",
+                name="Rampa Declinante San Jerónimo (Hacia Nivel -50m)",
+                tunnel_type="rampa",
+                status="activo",
+                elevation=-25.0,
+                start_x=120.0,
+                start_y=10.0,
+                start_z=-5.0,
+                end_x=180.0,
+                end_y=70.0,
+                end_z=-50.0,
+                length_meters=102.5,
+                width_meters=3.0,
+                height_meters=2.8,
+                ventilation_status="optimo",
+                risk_level="medio",
+                description="Rampa inclinada con gradiente del 12% para tránsito hacia niveles intermedios.",
+            ),
+            MineTunnel(
+                id="soc-3",
+                code="GAL-ORO-50",
+                name="Galería Veta de Oro (Nivel -50m)",
+                tunnel_type="galeria",
+                status="activo",
+                elevation=-50.0,
+                start_x=180.0,
+                start_y=70.0,
+                start_z=-50.0,
+                end_x=320.0,
+                end_y=85.0,
+                end_z=-50.0,
+                length_meters=140.8,
+                width_meters=2.4,
+                height_meters=2.2,
+                ventilation_status="regular",
+                risk_level="medio",
+                description="Frente activo de perforación neumática sobre manto aurífero.",
+            ),
+            MineTunnel(
+                id="soc-4",
+                code="CH-VENT-01",
+                name="Chimenea de Ventilación / Evacuación Ch-1",
+                tunnel_type="chimenea_pique",
+                status="activo",
+                elevation=-25.0,
+                start_x=250.0,
+                start_y=80.0,
+                start_z=-50.0,
+                end_x=250.0,
+                end_y=80.0,
+                end_z=0.0,
+                length_meters=50.0,
+                width_meters=1.8,
+                height_meters=1.8,
+                ventilation_status="optimo",
+                risk_level="alto",
+                description="Chimenea vertical con escaleras para inyección de aire fresco y salida de emergencia.",
+            ),
+            MineTunnel(
+                id="soc-5",
+                code="CRU-NOR-120",
+                name="Crucero de Exploración Norte (Nivel -120m)",
+                tunnel_type="cruce",
+                status="mantenimiento",
+                elevation=-120.0,
+                start_x=180.0,
+                start_y=70.0,
+                start_z=-50.0,
+                end_x=220.0,
+                end_y=190.0,
+                end_z=-120.0,
+                length_meters=144.6,
+                width_meters=2.2,
+                height_meters=2.0,
+                ventilation_status="deficiente",
+                risk_level="critico",
+                description="Crucero en zona de falla geológica, requiere sostenimiento con cuadros y split sets.",
+            ),
+            MineTunnel(
+                id="soc-6",
+                code="TAJ-SUR-01",
+                name="Tajo de Explotación Sur",
+                tunnel_type="tajo_explotacion",
+                status="activo",
+                elevation=-50.0,
+                start_x=320.0,
+                start_y=85.0,
+                start_z=-50.0,
+                end_x=380.0,
+                end_y=140.0,
+                end_z=-50.0,
+                length_meters=81.4,
+                width_meters=2.5,
+                height_meters=2.0,
+                ventilation_status="optimo",
+                risk_level="medio",
+                description="Tajo de corte y relleno ascendente con cuadrillas de acarreo.",
+            ),
+        ]
+        db.add_all(tunnels)
+        db.commit()
+
+    # Check if tunnel connections exist
+    if db.query(TunnelConnection).count() == 0:
+        connections = [
+            TunnelConnection(
+                id="conn-1",
+                source_tunnel_id="soc-1",
+                target_tunnel_id="soc-2",
+                connection_type="rampa_inclinada",
+                junction_point={"x": 120.0, "y": 10.0, "z": -5.0},
+                distance_meters=8.0,
+                status="abierto",
+                notes="Conexión de la Bocamina hacia la Rampa San Jerónimo.",
+            ),
+            TunnelConnection(
+                id="conn-2",
+                source_tunnel_id="soc-2",
+                target_tunnel_id="soc-3",
+                connection_type="bifurcacion_y",
+                junction_point={"x": 180.0, "y": 70.0, "z": -50.0},
+                distance_meters=5.0,
+                status="abierto",
+                notes="Empalme en Y entre Rampa y Galería Nivel -50m.",
+            ),
+            TunnelConnection(
+                id="conn-3",
+                source_tunnel_id="soc-3",
+                target_tunnel_id="soc-4",
+                connection_type="chimenea_vertical",
+                junction_point={"x": 250.0, "y": 80.0, "z": -50.0},
+                distance_meters=2.0,
+                status="abierto",
+                notes="Acceso a chimenea de ventilación y escape Ch-1.",
+            ),
+            TunnelConnection(
+                id="conn-4",
+                source_tunnel_id="soc-3",
+                target_tunnel_id="soc-6",
+                connection_type="bifurcacion_y",
+                junction_point={"x": 320.0, "y": 85.0, "z": -50.0},
+                distance_meters=6.0,
+                status="abierto",
+                notes="Desvío hacia frente de producción Tajo Sur.",
+            ),
+            TunnelConnection(
+                id="conn-5",
+                source_tunnel_id="soc-2",
+                target_tunnel_id="soc-5",
+                connection_type="rampa_inclinada",
+                junction_point={"x": 180.0, "y": 70.0, "z": -50.0},
+                distance_meters=12.0,
+                status="enmaderado",
+                notes="Descenso hacia nivel profundo -120m en sostenimiento.",
+            ),
+        ]
+        db.add_all(connections)
+        db.commit()
+

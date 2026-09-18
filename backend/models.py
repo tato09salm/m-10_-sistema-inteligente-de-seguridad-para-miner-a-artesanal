@@ -203,3 +203,75 @@ class AuditLog(Base):
             "details": self.details,
             "ip": self.ip,
         }
+
+class MineTunnel(Base):
+    __tablename__ = "mine_tunnels"
+
+    id = Column(String(50), primary_key=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    name = Column(String(150), nullable=False)
+    tunnel_type = Column(String(50), default="galeria")  # rampa, galeria, chimenea_pique, tajo_explotacion, cruce
+    status = Column(String(50), default="activo")  # activo, mantenimiento, restringido, inactivo
+    elevation = Column(Float, default=0.0)  # cota o profundidad en metros
+    start_x = Column(Float, default=0.0)
+    start_y = Column(Float, default=0.0)
+    start_z = Column(Float, default=0.0)
+    end_x = Column(Float, default=50.0)
+    end_y = Column(Float, default=0.0)
+    end_z = Column(Float, default=0.0)
+    length_meters = Column(Float, default=50.0)
+    width_meters = Column(Float, default=2.5)
+    height_meters = Column(Float, default=2.2)
+    ventilation_status = Column(String(50), default="optimo")  # optimo, regular, deficiente, critico
+    risk_level = Column(String(20), default="bajo")  # bajo, medio, alto, critico
+    description = Column(Text, default="")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "code": self.code,
+            "name": self.name,
+            "tunnelType": self.tunnel_type,
+            "status": self.status,
+            "elevation": self.elevation,
+            "startX": self.start_x,
+            "startY": self.start_y,
+            "startZ": self.start_z,
+            "endX": self.end_x,
+            "endY": self.end_y,
+            "endZ": self.end_z,
+            "lengthMeters": self.length_meters,
+            "widthMeters": self.width_meters,
+            "heightMeters": self.height_meters,
+            "ventilationStatus": self.ventilation_status,
+            "riskLevel": self.risk_level,
+            "description": self.description,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+        }
+
+class TunnelConnection(Base):
+    __tablename__ = "tunnel_connections"
+
+    id = Column(String(50), primary_key=True)
+    source_tunnel_id = Column(String(50), ForeignKey("mine_tunnels.id", ondelete="CASCADE"), nullable=False, index=True)
+    target_tunnel_id = Column(String(50), ForeignKey("mine_tunnels.id", ondelete="CASCADE"), nullable=False, index=True)
+    connection_type = Column(String(50), default="bifurcacion_y")  # bifurcacion_y, cruce_x, chimenea_vertical, rampa_inclinada, compuerta
+    junction_point = Column(JSON, default=lambda: {"x": 0.0, "y": 0.0, "z": 0.0})
+    distance_meters = Column(Float, default=5.0)
+    status = Column(String(50), default="abierto")  # abierto, bloqueado, enmaderado, en_mantenimiento
+    notes = Column(Text, default="")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "sourceTunnelId": self.source_tunnel_id,
+            "targetTunnelId": self.target_tunnel_id,
+            "connectionType": self.connection_type,
+            "junctionPoint": self.junction_point or {"x": 0.0, "y": 0.0, "z": 0.0},
+            "distanceMeters": self.distance_meters,
+            "status": self.status,
+            "notes": self.notes,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+        }

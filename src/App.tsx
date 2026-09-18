@@ -9,9 +9,11 @@ import { AlertsView } from './components/AlertsView';
 import { ReportsView } from './components/ReportsView';
 import { HistoryView } from './components/HistoryView';
 import { UsersSecurityView } from './components/UsersSecurityView';
+import { SocavonesView } from './components/SocavonesView';
 import { SmartphoneSimulatorModal } from './components/SmartphoneSimulatorModal';
 import { LivePhoneConnectModal } from './components/LivePhoneConnectModal';
 import { PostgresSchemaModal } from './components/PostgresSchemaModal';
+import { MobileTransmitterView } from './components/MobileTransmitterView';
 import { LoginView } from './components/LoginView';
 import { api } from './lib/api';
 import { playEmergencySiren } from './lib/soundEffects';
@@ -22,7 +24,9 @@ import {
   SystemUser, 
   AuditLog, 
   UserRole,
-  AlertStatus 
+  AlertStatus,
+  MineTunnel,
+  TunnelConnection
 } from './types';
 import { INITIAL_WORKERS, INITIAL_ALERTS, SYSTEM_USERS, AUDIT_LOGS, generateInitialTelemetryHistory } from './lib/mockData';
 
@@ -41,6 +45,8 @@ export default function App() {
   const [telemetryHistory, setTelemetryHistory] = useState<SensorTelemetry[]>(() => generateInitialTelemetryHistory(INITIAL_WORKERS[0].id));
   const [users, setUsers] = useState<SystemUser[]>(SYSTEM_USERS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(AUDIT_LOGS);
+  const [tunnels, setTunnels] = useState<MineTunnel[]>([]);
+  const [connections, setConnections] = useState<TunnelConnection[]>([]);
   const [currentUser, setCurrentUser] = useState<SystemUser>(() => {
     try {
       const stored = localStorage.getItem('m10_auth_user');
@@ -59,10 +65,12 @@ export default function App() {
   // Load initial state from backend
   const loadData = useCallback(async () => {
     try {
-      const [fetchedWorkers, fetchedAlerts, fetchedStats] = await Promise.all([
+      const [fetchedWorkers, fetchedAlerts, fetchedStats, fetchedTunnels, fetchedConns] = await Promise.all([
         api.getWorkers(),
         api.getAlerts(),
         api.getStats(),
+        api.getSocavones().catch(() => []),
+        api.getTunnelConnections().catch(() => []),
       ]);
 
       if (fetchedWorkers && fetchedWorkers.length > 0) {
@@ -73,6 +81,12 @@ export default function App() {
       if (fetchedAlerts) {
         setAlerts(fetchedAlerts);
       }
+      if (fetchedTunnels && fetchedTunnels.length > 0) {
+        setTunnels(fetchedTunnels);
+      }
+      if (fetchedConns) {
+        setConnections(fetchedConns);
+      }
     } catch (err) {
       console.warn('Using client-side fallback data:', err);
     }
@@ -80,10 +94,11 @@ export default function App() {
 
   useEffect(() => {
     loadData();
-    // Periodic refresh
-    const interval = setInterval(loadData, 6000);
+    // Fast periodic refresh (2s normal, 1s if modal is open)
+    const refreshMs = (isSimModalOpen || isPhoneConnectModalOpen) ? 1200 : 2000;
+    const interval = setInterval(loadData, refreshMs);
     return () => clearInterval(interval);
-  }, [loadData]);
+  }, [loadData, isSimModalOpen, isPhoneConnectModalOpen]);
 
   // Handle worker selection
   const handleSelectWorker = (worker: Worker) => {
@@ -171,6 +186,32 @@ export default function App() {
     setIsAuthenticated(false);
   };
 
+  // Detect Mobile Sensor Hub mode (via QR code or direct mobile URL)
+  const urlParams = new URLSearchParams(window.location.search);
+  const isMobileMode = urlParams.get('mobile') === '1' || urlParams.get('mode') === 'phone';
+  const targetWorkerId = urlParams.get('workerId') || urlParams.get('worker');
+
+  if (isMobileMode) {
+    const mobileWorker = 
+      (targetWorkerId ? workers.find(w => w.id === targetWorkerId) : null) || 
+      workers.find(w => w.code === 'MIN-087') ||
+      selectedWorker || 
+      workers[0];
+
+    return (
+      <MobileTransmitterView
+        worker={mobileWorker}
+        onBackToApp={() => {
+          window.location.href = window.location.pathname;
+        }}
+        onWorkerUpdated={(upd) => {
+          setWorkers(prev => prev.map(w => w.id === upd.id ? upd : w));
+          if (selectedWorker.id === upd.id) setSelectedWorker(upd);
+        }}
+      />
+    );
+  }
+
   // If not authenticated, display LoginView
   if (!isAuthenticated) {
     return <LoginView onLoginSuccess={handleLoginSuccess} />;
@@ -194,6 +235,11 @@ export default function App() {
         criticalAlertsCount={criticalAlertsCount}
         highRiskWorkersCount={highRiskWorkersCount}
         onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onOpenSimulator={() => setIsSimModalOpen(true)}
+        onOpenLiveMobile={() => setIsPhoneConnectModalOpen(true)}
+        onOpenPostgresSchema={() => setIsPostgresModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -210,6 +256,8 @@ export default function App() {
           onOpenPostgresSchema={() => setIsPostgresModalOpen(true)}
           criticalAlertsCount={criticalAlertsCount}
           onLogout={handleLogout}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          onNavigateAlerts={() => setCurrentModule('alerts')}
         />
 
         {/* Dynamic View Router */}
@@ -218,6 +266,8 @@ export default function App() {
             <DashboardView
               workers={workers}
               alerts={alerts}
+              tunnels={tunnels}
+              connections={connections}
               onNavigate={setCurrentModule}
               onSelectWorker={handleSelectWorker}
             />
@@ -226,6 +276,7 @@ export default function App() {
           {currentModule === 'workers' && (
             <WorkersView
               workers={workers}
+              tunnels={tunnels}
               onSaveWorker={handleSaveWorker}
               onCreateWorker={handleSaveWorker}
               onUpdateWorker={(id, data) => handleSaveWorker({ ...data, id })}
@@ -253,6 +304,16 @@ export default function App() {
               onSelectWorker={handleSelectWorker}
               telemetryHistory={telemetryHistory}
               onStreamCustomTelemetry={handleStreamTelemetry}
+            />
+          )}
+
+          {currentModule === 'socavones' && (
+            <SocavonesView
+              tunnels={tunnels}
+              connections={connections}
+              onTunnelsChange={setTunnels}
+              onConnectionsChange={setConnections}
+              onNavigateToMonitoring={() => setCurrentModule('monitoring')}
             />
           )}
 
@@ -304,6 +365,7 @@ export default function App() {
         isOpen={isSimModalOpen}
         onClose={() => setIsSimModalOpen(false)}
         workers={workers}
+        selectedWorkerId={selectedWorker?.id}
         onStreamTelemetry={handleStreamTelemetry}
       />
 
@@ -314,6 +376,11 @@ export default function App() {
         workers={workers}
         selectedWorker={selectedWorker}
         onStreamTelemetry={handleStreamTelemetry}
+        onOpenSimulatorForWorker={(w) => {
+          setSelectedWorker(w);
+          setIsPhoneConnectModalOpen(false);
+          setIsSimModalOpen(true);
+        }}
       />
 
       {/* PostgreSQL Relational Schema DDL Modal */}

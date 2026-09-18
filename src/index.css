@@ -5,6 +5,7 @@
     background-color: #0F1115;
     color: #e2e8f0;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   h1, h2, h3, h4, .font-heading {
@@ -135,4 +136,247 @@
 
 .pulse-gold {
   animation: gold-pulse 2.2s infinite;
+}
+
+/* ==========================================================================
+   MODO CLARO (LIGHT THEME) STYLES
+   Executive Mining Control Center Palette
+   ========================================================================== */
+
+html.light body {
+  background-color: #F4F6F9 !important;
+  color: #1E293B !important;
+}
+
+/* Base Surfaces in Light Mode */
+html.light .bg-surface-dark,
+html.light .bg-\[\#1A1C22\],
+html.light .bg-\[\#14171D\],
+html.light .bg-\[\#14171D\]\/90 {
+  background-color: #FFFFFF !important;
+}
+
+html.light .bg-surface-darker,
+html.light .bg-\[\#0F1115\],
+html.light .bg-\[\#0A0C0E\] {
+  background-color: #F8FAFC !important;
+}
+
+html.light .bg-surface-sidebar,
+html.light .bg-\[\#16181D\] {
+  background-color: #FFFFFF !important;
+}
+
+html.light .bg-\[\#121418\],
+html.light .bg-\[\#121418\]\/60 {
+  background-color: #FFFFFF !important;
+}
+
+html.light .bg-\[\#1F2229\],
+html.light .bg-\[\#1A1E26\] {
+  background-color: #F1F5F9 !important;
+}
+
+html.light .bg-\[\#282C35\],
+html.light .bg-\[\#282C37\] {
+  background-color: #E2E8F0 !important;
+}
+
+html.light .hover\:bg-\[\#1F2229\]:hover,
+html.light .hover\:bg-\[\#1F2229\]\/60:hover,
+html.light .hover\:bg-\[\#282C35\]:hover {
+  background-color: #E2E8F0 !important;
+}
+
+/* Typography Overrides in Light Mode */
+html.light .text-white {
+  color: #0F172A !important;
+}
+
+html.light .text-gray-100 {
+  color: #0F172A !important;
+}
+
+html.light .text-gray-200 {
+  color: #1E293B !important;
+}
+
+html.light .text-gray-300 {
+  color: #334155 !important;
+}
+
+html.light .text-gray-400 {
+  color: #64748B !important;
+}
+
+html.light .text-silver {
+  color: #475569 !important;
+}
+
+html.light .text-gold {
+  color: #B45309 !important;
+}
+
+html.light .text-copper {
+  color: #9A3412 !important;
+}
+
+/* Metallic Gradients in Light Mode */
+html.light .gold-gradient-text {
+  background: linear-gradient(135deg, #A16207 0%, #D97706 40%, #854D0E 80%, #B45309 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+html.light .silver-gradient-text {
+  background: linear-gradient(135deg, #0F172A 0%, #334155 50%, #64748B 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+html.light .copper-gradient-text {
+  background: linear-gradient(135deg, #C2410C 0%, #9A3412 50%, #7C2D12 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Metallic Cards in Light Mode */
+html.light .metal-card-gold {
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.12) 0%, #FFFFFF 100%) !important;
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+  box-shadow: 0 4px 20px -2px rgba(212, 175, 55, 0.15) !important;
+}
+
+html.light .metal-card-silver {
+  background: linear-gradient(180deg, rgba(241, 245, 249, 0.8) 0%, #FFFFFF 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  box-shadow: 0 4px 20px -2px rgba(100, 116, 139, 0.1) !important;
+}
+
+html.light .metal-card-copper {
+  background: linear-gradient(180deg, rgba(184, 115, 51, 0.12) 0%, #FFFFFF 100%) !important;
+  border: 1px solid rgba(184, 115, 51, 0.4) !important;
+  box-shadow: 0 4px 20px -2px rgba(184, 115, 51, 0.15) !important;
+}
+
+html.light .metal-card-dark {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Borders in Light Mode */
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20,
+html.light .border-white\/30,
+html.light .border-\[\#C0C0C0\]\/10,
+html.light .border-\[\#C0C0C0\]\/20 {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html.light .border-\[\#D4AF37\]\/10,
+html.light .border-\[\#D4AF37\]\/15,
+html.light .border-\[\#D4AF37\]\/20 {
+  border-color: rgba(180, 83, 9, 0.22) !important;
+}
+
+html.light .border-gold-subtle {
+  border-color: rgba(180, 83, 9, 0.25) !important;
+}
+
+/* Inputs, Selects & Textareas in Light Mode */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #D4AF37 !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2) !important;
+}
+
+/* Scrollbars in Light Mode */
+html.light ::-webkit-scrollbar-track {
+  background: #F1F5F9 !important;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1 !important;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8 !important;
+}
+
+/* Tables in Light Mode */
+html.light table thead {
+  background-color: #F8FAFC !important;
+  color: #475569 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #F8FAFC !important;
+}
+
+/* Modals & Backdrops in Light Mode */
+html.light .fixed.inset-0.bg-black\/70,
+html.light .fixed.inset-0.bg-black\/80,
+html.light .fixed.inset-0.bg-black\/85,
+html.light .fixed.inset-0.bg-black\/90 {
+  background-color: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+/* Recharts Tooltips in Light Mode */
+html.light .recharts-default-tooltip {
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+  color: #0F172A !important;
+  border-radius: 8px !important;
+}
+
+html.light .recharts-tooltip-item {
+  color: #0F172A !important;
+}
+
+html.light .recharts-cartesian-grid line {
+  stroke: #E2E8F0 !important;
+}
+
+html.light .recharts-text {
+  fill: #64748B !important;
+}
+
+/* Cable Flow Animation for Mine Network Wiring */
+@keyframes cable-flow {
+  from {
+    stroke-dashoffset: 64;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-cable-flow {
+  animation: cable-flow 2s linear infinite;
+}
+
+div:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #090B0E !important;
 }

@@ -69,6 +69,7 @@ class TelemetryStreamInput(BaseModel):
     gyroGamma: Optional[float] = 0.0
     immobilitySec: Optional[float] = None
     batteryLevel: Optional[int] = None
+    signalStrength: Optional[int] = -65
     depthMeters: Optional[float] = 120.0
 
 class AlertUpdate(BaseModel):
@@ -84,4 +85,52 @@ class AiAdvisorInput(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class MineTunnelCreate(BaseModel):
+    code: Optional[str] = None
+    name: str
+    tunnelType: Optional[str] = "galeria"
+    status: Optional[str] = "activo"
+    elevation: Optional[float] = 0.0
+    startX: Optional[float] = 0.0
+    startY: Optional[float] = 0.0
+    startZ: Optional[float] = 0.0
+    endX: Optional[float] = 50.0
+    endY: Optional[float] = 0.0
+    endZ: Optional[float] = 0.0
+    lengthMeters: Optional[float] = 50.0
+    widthMeters: Optional[float] = 2.5
+    heightMeters: Optional[float] = 2.2
+    ventilationStatus: Optional[str] = "optimo"
+    riskLevel: Optional[str] = "bajo"
+    description: Optional[str] = ""
+
+class MineTunnelUpdate(BaseModel):
+    code: Optional[str] = None
+    name: Optional[str] = None
+    tunnelType: Optional[str] = None
+    status: Optional[str] = None
+    elevation: Optional[float] = None
+    startX: Optional[float] = None
+    startY: Optional[float] = None
+    startZ: Optional[float] = None
+    endX: Optional[float] = None
+    endY: Optional[float] = None
+    endZ: Optional[float] = None
+    lengthMeters: Optional[float] = None
+    widthMeters: Optional[float] = None
+    heightMeters: Optional[float] = None
+    ventilationStatus: Optional[str] = None
+    riskLevel: Optional[str] = None
+    description: Optional[str] = None
+
+class TunnelConnectionCreate(BaseModel):
+    sourceTunnelId: str
+    targetTunnelId: str
+    connectionType: Optional[str] = "bifurcacion_y"
+    junctionPoint: Optional[Dict[str, float]] = None
+    distanceMeters: Optional[float] = 5.0
+    status: Optional[str] = "abierto"
+    notes: Optional[str] = ""
+
 

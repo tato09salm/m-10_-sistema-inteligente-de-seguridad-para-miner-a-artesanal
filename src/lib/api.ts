@@ -1,9 +1,25 @@
-import { Worker, Alert, SensorTelemetry, DashboardStats, SystemUser, AuditLog } from '../types';
+import { Worker, Alert, SensorTelemetry, DashboardStats, SystemUser, AuditLog, MineTunnel, TunnelConnection } from '../types';
 
 export const api = {
   async getHealth() {
     const res = await fetch('/api/health');
     return res.json();
+  },
+
+  async getNetworkInterfaces(): Promise<{ interfaces: { name: string; ip: string; isWifi: boolean; isRecommended?: boolean }[]; currentHost: string }> {
+    try {
+      const res = await fetch('/api/network-interfaces');
+      if (!res.ok) throw new Error('Endpoint not available');
+      return await res.json();
+    } catch {
+      return {
+        interfaces: [
+          { name: 'Red Local (Automática)', ip: window.location.hostname || 'localhost', isWifi: true, isRecommended: true },
+          { name: 'localhost (Mismo equipo)', ip: 'localhost', isWifi: false, isRecommended: false }
+        ],
+        currentHost: window.location.hostname || 'localhost'
+      };
+    }
   },
 
   async getWorkers(filters?: { sector?: string; status?: string; riskLevel?: string; search?: string }): Promise<Worker[]> {
@@ -60,6 +76,7 @@ export const api = {
     gyroGamma?: number;
     immobilitySec?: number;
     batteryLevel?: number;
+    signalStrength?: number;
   }) {
     const res = await fetch('/api/telemetry/stream', {
       method: 'POST',
@@ -142,5 +159,88 @@ export const api = {
     } catch {
       return { success: true };
     }
+  },
+
+  async getSocavones(filters?: { status?: string; tunnelType?: string; riskLevel?: string; search?: string }): Promise<MineTunnel[]> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.tunnelType) params.append('tunnel_type', filters.tunnelType);
+    if (filters?.riskLevel) params.append('risk_level', filters.riskLevel);
+    if (filters?.search) params.append('search', filters.search);
+
+    const res = await fetch(`/api/socavones?${params.toString()}`);
+    return res.json();
+  },
+
+  async getSocavon(id: string): Promise<MineTunnel> {
+    const res = await fetch(`/api/socavones/${id}`);
+    return res.json();
+  },
+
+  async createSocavon(data: Partial<MineTunnel>): Promise<MineTunnel> {
+    const res = await fetch('/api/socavones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al crear socavón' }));
+      throw new Error(err.detail || 'Error al crear socavón');
+    }
+    return res.json();
+  },
+
+  async updateSocavon(id: string, data: Partial<MineTunnel>): Promise<MineTunnel> {
+    const res = await fetch(`/api/socavones/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al actualizar socavón' }));
+      throw new Error(err.detail || 'Error al actualizar socavón');
+    }
+    return res.json();
+  },
+
+  async deleteSocavon(id: string) {
+    const res = await fetch(`/api/socavones/${id}`, { method: 'DELETE' });
+    return res.json();
+  },
+
+  async getTunnelConnections(): Promise<TunnelConnection[]> {
+    const res = await fetch('/api/socavones/connections');
+    return res.json();
+  },
+
+  async createTunnelConnection(data: Partial<TunnelConnection>): Promise<TunnelConnection> {
+    const res = await fetch('/api/socavones/connections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al conectar socavones' }));
+      throw new Error(err.detail || 'Error al conectar socavones');
+    }
+    return res.json();
+  },
+
+  async deleteTunnelConnection(id: string) {
+    const res = await fetch(`/api/socavones/connections/${id}`, { method: 'DELETE' });
+    return res.json();
+  },
+
+  async resolveMapsUrl(url: string): Promise<{ lat: number; lng: number; source: string; placeName?: string | null }> {
+    const res = await fetch('/api/utils/resolve-maps-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'No se pudieron extraer coordenadas' }));
+      throw new Error(err.detail || 'Error al resolver la URL de Maps');
+    }
+    return res.json();
   },
 };

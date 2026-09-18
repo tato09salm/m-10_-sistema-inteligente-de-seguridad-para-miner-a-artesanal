@@ -441,21 +441,21 @@ export const AIModelView: React.FC<AIModelViewProps> = ({ workers, selectedWorke
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h2 className="text-sm font-bold text-[#D4AF37] flex items-center gap-2">
                 <Bot className="w-5 h-5 text-[#D4AF37]" />
-                Copiloto Experto en Seguridad Minera (IA Asistente)
+                Copiloto Experto en Seguridad Minera (Motor Autónomo Local)
               </h2>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-[#D4AF37]/15 text-[#D4AF37] font-mono">
-                Análisis Geomecánico & Rescate
+              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono">
+                ● Modelo Puro_1D_CNN Activo
               </span>
             </div>
 
             <p className="text-xs text-gray-300">
-              Consulte al copiloto inteligente sobre protocolos de emergencia, ventilación de socavones o análisis de riesgos para el trabajador seleccionado (<strong>{selectedWorker.name}</strong> en <strong>{selectedWorker.sector}</strong>).
+              Evaluación inteligente local en tiempo real basada en el modelo neuronal y cinemática para <strong>{selectedWorker.name}</strong> en <strong>{selectedWorker.sector}</strong> (100% autónomo, sin dependencias de APIs en la nube).
             </p>
 
             <form onSubmit={handleConsultAi} className="flex gap-2">
               <input
                 type="text"
-                placeholder="Ej. Evalúa el riesgo en Nivel -120m tras la alerta de caída..."
+                placeholder="Ej. Evalúa el riesgo en Nivel -120m según el modelo Puro_1D_CNN..."
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 className="flex-1 bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-[#D4AF37]"

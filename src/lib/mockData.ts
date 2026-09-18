@@ -163,6 +163,33 @@ export const INITIAL_WORKERS: Worker[] = [
     consecutiveAlerts: 0,
     avatarUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80',
   },
+  {
+    id: 'w-1789681010517',
+    code: 'MIN-087',
+    name: 'Stiven Adrian Lopez Malca',
+    dni: '71904523',
+    age: 33,
+    role: 'Operador Perforista & Sensor Móvil',
+    sector: 'Socavón Principal',
+    shift: 'Mañana',
+    status: 'normal',
+    riskLevel: 'bajo',
+    deviceUuid: 'SMP-MÓVIL-087',
+    deviceBattery: 90,
+    signalStrength: -65,
+    emergencyContact: {
+      name: 'Elena Lopez',
+      phone: '+51 984 712 908',
+      relationship: 'Familiar',
+    },
+    bloodType: 'O+',
+    lastActivity: 'actividad_normal',
+    lastTelemetryAt: '2026-09-17T21:36:50.531Z',
+    currentAcceleration: { x: 0.2, y: 9.81, z: 0.8, svm: 9.85 },
+    currentGyroscope: { alpha: 10, beta: 12, gamma: 5 },
+    consecutiveAlerts: 0,
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  },
 ];
 
 export const INITIAL_ALERTS: Alert[] = [

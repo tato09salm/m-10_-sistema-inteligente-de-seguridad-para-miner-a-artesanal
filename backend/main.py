@@ -1,18 +1,31 @@
 import time
 import uuid
+import socket
+import psutil
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from backend.config import HOST, PORT, DB_NAME
 from backend.database import engine, Base, get_db, SessionLocal
-from backend.models import MiningSector, Worker, SensorTelemetry, SafetyAlert, SystemUser, AuditLog
-from backend.schemas import WorkerCreate, WorkerUpdate, TelemetryStreamInput, AlertUpdate, AiAdvisorInput, LoginRequest
+from backend.models import MiningSector, Worker, SensorTelemetry, SafetyAlert, SystemUser, AuditLog, MineTunnel, TunnelConnection
+from backend.schemas import (
+    WorkerCreate,
+    WorkerUpdate,
+    TelemetryStreamInput,
+    AlertUpdate,
+    AiAdvisorInput,
+    LoginRequest,
+    MineTunnelCreate,
+    MineTunnelUpdate,
+    TunnelConnectionCreate,
+)
 from backend.ml_engine import classify_sensor_stream
 from backend.ai_advisor import get_ai_safety_advice
 from backend.seed_data import seed_database
@@ -45,6 +58,48 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/api/network-interfaces")
+def get_network_interfaces():
+    interfaces = []
+    try:
+        addrs = psutil.net_if_addrs()
+        for iface_name, net_addrs in addrs.items():
+            for addr in net_addrs:
+                if addr.family == socket.AF_INET and not addr.address.startswith("127."):
+                    lower = iface_name.lower()
+                    is_wifi = "wi-fi" in lower or "wifi" in lower or "wlan" in lower or "wireless" in lower
+                    interfaces.append({
+                        "name": f"{iface_name} ({addr.address})",
+                        "ip": addr.address,
+                        "isWifi": is_wifi,
+                        "isRecommended": is_wifi
+                    })
+    except Exception:
+        pass
+
+    if not interfaces:
+        try:
+            hostname = socket.gethostname()
+            local_ip = socket.gethostbyname(hostname)
+            if local_ip and not local_ip.startswith("127."):
+                interfaces.append({
+                    "name": f"IP Local ({local_ip})",
+                    "ip": local_ip,
+                    "isWifi": True,
+                    "isRecommended": True
+                })
+        except Exception:
+            pass
+
+    interfaces.sort(key=lambda x: 1 if x.get("isRecommended") else 0, reverse=True)
+    interfaces.append({
+        "name": "localhost (Mismo equipo)",
+        "ip": "localhost",
+        "isWifi": False,
+        "isRecommended": False
+    })
+    return {"interfaces": interfaces, "currentHost": interfaces[0]["ip"] if interfaces else "localhost"}
 
 # --- 0. Authentication Endpoints ---
 @app.post("/api/auth/login")
@@ -418,6 +473,10 @@ def ingest_telemetry_stream(payload: TelemetryStreamInput, request: Request, db:
     }
     if payload.batteryLevel is not None:
         worker.device_battery = max(1, min(100, payload.batteryLevel))
+    if payload.signalStrength is not None:
+        worker.signal_strength = payload.signalStrength
+    elif worker.signal_strength is None:
+        worker.signal_strength = -65
 
     created_alert = None
     if ai_result["activity"] in ["posible_caida", "inmovilidad_prolongada"] or (
@@ -702,6 +761,9 @@ CREATE TABLE IF NOT EXISTS safety_alerts (
 CREATE INDEX idx_alerts_status_priority ON safety_alerts (status, priority);
     """.strip()
 
+    tunnels_count = db.query(MineTunnel).count()
+    connections_count = db.query(TunnelConnection).count()
+
     return {
         "dialect": "PostgreSQL 16 (FastAPI SQLAlchemy Driver)",
         "ddl": ddl,
@@ -711,6 +773,8 @@ CREATE INDEX idx_alerts_status_priority ON safety_alerts (status, priority);
             {"name": "safety_alerts", "count": alerts_count, "description": "Alertas generadas por caídas, inmovilidad o anomalías"},
             {"name": "system_users", "count": users_count, "description": "Usuarios del sistema (Administrador, Supervisor, Rescatista)" },
             {"name": "audit_logs", "count": logs_count, "description": "Pistas de auditoría y eventos de seguridad"},
+            {"name": "mine_tunnels", "count": tunnels_count, "description": "Socavones, galerías, rampas y chimeneas para el Gemelo Digital 3D"},
+            {"name": "tunnel_connections", "count": connections_count, "description": "Interconexiones, bifurcaciones y topología subterránea"},
         ]
     }
 
@@ -737,6 +801,358 @@ def consult_ai_advisor(payload: AiAdvisorInput, db: Session = Depends(get_db)):
 
     return advice
 
+# --- 9. Socavones & Red Subterránea (Gemelo Digital 3D) ---
+@app.get("/api/socavones")
+def get_socavones(
+    status: Optional[str] = None,
+    tunnel_type: Optional[str] = None,
+    risk_level: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(MineTunnel)
+    if status and status != "todos":
+        query = query.filter(MineTunnel.status == status)
+    if tunnel_type and tunnel_type != "todos":
+        query = query.filter(MineTunnel.tunnel_type == tunnel_type)
+    if risk_level and risk_level != "todos":
+        query = query.filter(MineTunnel.risk_level == risk_level)
+    if search:
+        s = f"%{search.strip()}%"
+        query = query.filter((MineTunnel.name.ilike(s)) | (MineTunnel.code.ilike(s)) | (MineTunnel.description.ilike(s)))
+    
+    tunnels = query.order_by(MineTunnel.elevation.desc(), MineTunnel.code.asc()).all()
+    return [t.to_dict() for t in tunnels]
+
+@app.post("/api/socavones")
+def create_socavon(payload: MineTunnelCreate, db: Session = Depends(get_db)):
+    tunnel_id = f"soc-{uuid.uuid4().hex[:8]}"
+    
+    # Auto-generate code if not supplied
+    if not payload.code or not payload.code.strip():
+        count = db.query(MineTunnel).count() + 1
+        code = f"SOC-{count:02d}"
+    else:
+        code = payload.code.strip().upper()
+        existing = db.query(MineTunnel).filter(MineTunnel.code == code).first()
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Ya existe un socavón con el código '{code}'.")
+
+    # Compute length if not manual
+    length = payload.lengthMeters or 50.0
+    if payload.startX is not None and payload.endX is not None:
+        dx = payload.endX - payload.startX
+        dy = (payload.endY or 0.0) - (payload.startY or 0.0)
+        dz = (payload.endZ or 0.0) - (payload.startZ or 0.0)
+        calc_len = round((dx**2 + dy**2 + dz**2)**0.5, 2)
+        if calc_len > 0:
+            length = calc_len
+
+    tunnel = MineTunnel(
+        id=tunnel_id,
+        code=code,
+        name=payload.name.strip(),
+        tunnel_type=payload.tunnelType or "galeria",
+        status=payload.status or "activo",
+        elevation=payload.elevation if payload.elevation is not None else 0.0,
+        start_x=payload.startX or 0.0,
+        start_y=payload.startY or 0.0,
+        start_z=payload.startZ or 0.0,
+        end_x=payload.endX or 50.0,
+        end_y=payload.endY or 0.0,
+        end_z=payload.endZ or 0.0,
+        length_meters=length,
+        width_meters=payload.widthMeters or 2.5,
+        height_meters=payload.heightMeters or 2.2,
+        ventilation_status=payload.ventilationStatus or "optimo",
+        risk_level=payload.riskLevel or "bajo",
+        description=payload.description or "",
+    )
+    db.add(tunnel)
+    db.commit()
+    db.refresh(tunnel)
+    return tunnel.to_dict()
+
+# IMPORTANT: Las rutas de /connections deben ir ANTES de /{tunnel_id} para evitar
+# que FastAPI interprete 'connections' como un tunnel_id (path param conflict).
+@app.get("/api/socavones/connections/all")
+@app.get("/api/socavones/connections")
+def get_tunnel_connections(db: Session = Depends(get_db)):
+    conns = db.query(TunnelConnection).all()
+    tunnels_map = {t.id: t for t in db.query(MineTunnel).all()}
+    res = []
+    for c in conns:
+        d = c.to_dict()
+        src = tunnels_map.get(c.source_tunnel_id)
+        tgt = tunnels_map.get(c.target_tunnel_id)
+        d["sourceCode"] = src.code if src else "N/A"
+        d["sourceName"] = src.name if src else "Desconocido"
+        d["targetCode"] = tgt.code if tgt else "N/A"
+        d["targetName"] = tgt.name if tgt else "Desconocido"
+        res.append(d)
+    return res
+
+@app.post("/api/socavones/connections")
+def create_tunnel_connection(payload: TunnelConnectionCreate, db: Session = Depends(get_db)):
+    if payload.sourceTunnelId == payload.targetTunnelId:
+        raise HTTPException(status_code=400, detail="No se puede conectar un socavón consigo mismo.")
+
+    src = db.query(MineTunnel).filter(MineTunnel.id == payload.sourceTunnelId).first()
+    tgt = db.query(MineTunnel).filter(MineTunnel.id == payload.targetTunnelId).first()
+    if not src or not tgt:
+        raise HTTPException(status_code=404, detail="Uno o ambos socavones no existen.")
+
+    existing = db.query(TunnelConnection).filter(
+        ((TunnelConnection.source_tunnel_id == payload.sourceTunnelId) & (TunnelConnection.target_tunnel_id == payload.targetTunnelId)) |
+        ((TunnelConnection.source_tunnel_id == payload.targetTunnelId) & (TunnelConnection.target_tunnel_id == payload.sourceTunnelId))
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe una conexión registrada entre estos dos socavones.")
+
+    conn_id = f"conn-{uuid.uuid4().hex[:8]}"
+    
+    junction = payload.junctionPoint or {
+        "x": round((src.end_x + tgt.start_x) / 2, 2),
+        "y": round((src.end_y + tgt.start_y) / 2, 2),
+        "z": round((src.end_z + tgt.start_z) / 2, 2),
+    }
+
+    conn = TunnelConnection(
+        id=conn_id,
+        source_tunnel_id=payload.sourceTunnelId,
+        target_tunnel_id=payload.targetTunnelId,
+        connection_type=payload.connectionType or "bifurcacion_y",
+        junction_point=junction,
+        distance_meters=payload.distanceMeters or 5.0,
+        status=payload.status or "abierto",
+        notes=payload.notes or "",
+    )
+    db.add(conn)
+    db.commit()
+    db.refresh(conn)
+
+    d = conn.to_dict()
+    d["sourceCode"] = src.code
+    d["sourceName"] = src.name
+    d["targetCode"] = tgt.code
+    d["targetName"] = tgt.name
+    return d
+
+@app.delete("/api/socavones/connections/{conn_id}")
+def delete_tunnel_connection(conn_id: str, db: Session = Depends(get_db)):
+    conn = db.query(TunnelConnection).filter(TunnelConnection.id == conn_id).first()
+    if not conn:
+        raise HTTPException(status_code=404, detail="Conexión no encontrada.")
+    db.delete(conn)
+    db.commit()
+    return {"success": True, "deletedId": conn_id}
+
+# Las rutas con path param /{tunnel_id} van DESPUÉS de las rutas fijas de /connections
+@app.get("/api/socavones/{tunnel_id}")
+def get_socavon(tunnel_id: str, db: Session = Depends(get_db)):
+    tunnel = db.query(MineTunnel).filter(MineTunnel.id == tunnel_id).first()
+    if not tunnel:
+        raise HTTPException(status_code=404, detail="Socavón no encontrado")
+    
+    conns = db.query(TunnelConnection).filter(
+        (TunnelConnection.source_tunnel_id == tunnel_id) | (TunnelConnection.target_tunnel_id == tunnel_id)
+    ).all()
+    
+    res = tunnel.to_dict()
+    res["connections"] = [c.to_dict() for c in conns]
+    return res
+
+@app.put("/api/socavones/{tunnel_id}")
+def update_socavon(tunnel_id: str, payload: MineTunnelUpdate, db: Session = Depends(get_db)):
+    tunnel = db.query(MineTunnel).filter(MineTunnel.id == tunnel_id).first()
+    if not tunnel:
+        raise HTTPException(status_code=404, detail="Socavón no encontrado")
+
+    if payload.code:
+        c = payload.code.strip().upper()
+        if c != tunnel.code:
+            existing = db.query(MineTunnel).filter(MineTunnel.code == c).first()
+            if existing:
+                raise HTTPException(status_code=400, detail=f"Ya existe otro socavón con el código '{c}'.")
+            tunnel.code = c
+    
+    if payload.name is not None:
+        tunnel.name = payload.name.strip()
+    if payload.tunnelType is not None:
+        tunnel.tunnel_type = payload.tunnelType
+    if payload.status is not None:
+        tunnel.status = payload.status
+    if payload.elevation is not None:
+        tunnel.elevation = payload.elevation
+    if payload.startX is not None:
+        tunnel.start_x = payload.startX
+    if payload.startY is not None:
+        tunnel.start_y = payload.startY
+    if payload.startZ is not None:
+        tunnel.start_z = payload.startZ
+    if payload.endX is not None:
+        tunnel.end_x = payload.endX
+    if payload.endY is not None:
+        tunnel.end_y = payload.endY
+    if payload.endZ is not None:
+        tunnel.end_z = payload.endZ
+    if payload.lengthMeters is not None:
+        tunnel.length_meters = payload.lengthMeters
+    elif payload.startX is not None or payload.endX is not None:
+        dx = tunnel.end_x - tunnel.start_x
+        dy = tunnel.end_y - tunnel.start_y
+        dz = tunnel.end_z - tunnel.start_z
+        tunnel.length_meters = round((dx**2 + dy**2 + dz**2)**0.5, 2)
+    if payload.widthMeters is not None:
+        tunnel.width_meters = payload.widthMeters
+    if payload.heightMeters is not None:
+        tunnel.height_meters = payload.heightMeters
+    if payload.ventilationStatus is not None:
+        tunnel.ventilation_status = payload.ventilationStatus
+    if payload.riskLevel is not None:
+        tunnel.risk_level = payload.riskLevel
+    if payload.description is not None:
+        tunnel.description = payload.description
+
+    db.commit()
+    db.refresh(tunnel)
+    return tunnel.to_dict()
+
+@app.delete("/api/socavones/{tunnel_id}")
+def delete_socavon(tunnel_id: str, db: Session = Depends(get_db)):
+    tunnel = db.query(MineTunnel).filter(MineTunnel.id == tunnel_id).first()
+    if not tunnel:
+        raise HTTPException(status_code=404, detail="Socavón no encontrado")
+    
+    db.query(TunnelConnection).filter(
+        (TunnelConnection.source_tunnel_id == tunnel_id) | (TunnelConnection.target_tunnel_id == tunnel_id)
+    ).delete()
+
+    db.delete(tunnel)
+    db.commit()
+    return {"success": True, "deletedId": tunnel_id}
+
+# --- 10. Utils: Resolución de URLs de Google Maps ---
+import re
+import urllib.request
+import urllib.parse
+
+class MapsUrlInput(BaseModel):
+    url: str
+
+@app.post("/api/utils/resolve-maps-url")
+def resolve_maps_url(payload: MapsUrlInput):
+    """
+    Recibe una URL de Google Maps (corta tipo goo.gl o larga tipo google.com/maps)
+    y retorna las coordenadas lat/lng extraídas.
+    Soporta:
+      - URLs cortas: https://maps.app.goo.gl/XXXX  (resuelve redirección y lee cuerpo/protobuf)
+      - URLs con protobuf: !3d-8.1155057!4d-79.0387344
+      - URLs de búsqueda: /search/-8.114703,+-79.038662 o ?q=lat,lng
+      - URLs clásicas: /maps/@lat,lng,zoom
+      - Coordenadas directas: "-8.1155057, -79.0387344"
+    """
+    raw = payload.url.strip()
+    if not raw:
+        raise HTTPException(status_code=400, detail="URL o coordenadas vacías.")
+
+    # 1. Si son coordenadas numéricas directas (ej: "-8.1155, -79.0387")
+    direct_match = re.search(r'(-?\d{1,3}\.\d{3,})[,\s]+(-?\d{1,3}\.\d{3,})', raw)
+    if direct_match and not raw.startswith('http'):
+        lat = float(direct_match.group(1))
+        lng = float(direct_match.group(2))
+        if -90 <= lat <= 90 and -180 <= lng <= 180:
+            return {"lat": round(lat, 6), "lng": round(lng, 6), "source": "direct"}
+
+    final_url = raw
+    body_text = ""
+
+    # 2. Si es una URL http/https, seguir redirecciones y leer respuesta
+    if raw.startswith('http'):
+        try:
+            req = urllib.request.Request(
+                raw,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                    "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                final_url = resp.url
+                # Leemos primeros 300KB por si las coordenadas están en el HTML
+                raw_body = resp.read(300000)
+                body_text = raw_body.decode('utf-8', errors='ignore')
+        except Exception as e:
+            # Si falla la petición por timeout u otro, final_url queda como raw
+            final_url = raw
+
+    # Textos a inspeccionar (en orden de confiabilidad)
+    decoded_final_url = urllib.parse.unquote_plus(final_url)
+    decoded_raw = urllib.parse.unquote_plus(raw)
+    targets = [final_url, decoded_final_url, body_text, raw, decoded_raw]
+
+    # Patrones específicos de Google Maps (ordenados por especificidad)
+    patterns = [
+        # Protobuf de Maps: !3d-8.1155057!4d-79.0387344
+        r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)',
+        # Búsqueda directa: /search/-8.114703,+-79.038662
+        r'/search/(-?\d+\.\d+)[,\s\+]+(-?\d+\.\d+)',
+        # Formato clásico @lat,lng
+        r'@(-?\d+\.\d+),(-?\d+\.\d+)',
+        # Parámetros query q= o ll= o center=
+        r'[?&](?:q|ll|center)=(-?\d+\.\d+)[,\s\+]+(-?\d+\.\d+)',
+        # JSON-LD de Google Maps
+        r'"latitude":\s*(-?\d+\.\d+)[^}]*?"longitude":\s*(-?\d+\.\d+)',
+        # Ruta de lugar con @: /place/.../@lat,lng
+        r'/place/[^/]+/@(-?\d+\.\d+),(-?\d+\.\d+)',
+        # Coordenadas generales de al menos 4 decimales
+        r'(-?\d{1,3}\.\d{4,})[,\s\+]+(-?\d{1,3}\.\d{4,})',
+    ]
+
+    extracted_lat = None
+    extracted_lng = None
+
+    for target in targets:
+        if not target:
+            continue
+        for pattern in patterns:
+            m = re.search(pattern, target)
+            if m:
+                try:
+                    lat = float(m.group(1))
+                    lng = float(m.group(2))
+                    if -90 <= lat <= 90 and -180 <= lng <= 180:
+                        extracted_lat = round(lat, 6)
+                        extracted_lng = round(lng, 6)
+                        break
+                except (ValueError, IndexError):
+                    continue
+        if extracted_lat is not None:
+            break
+
+    # Intentar extraer nombre del lugar si existe en la URL (ej: /place/Biblioteca+Central/...)
+    place_name = None
+    place_match = re.search(r'/place/([^/@?]+)', decoded_final_url)
+    if place_match:
+        cand = place_match.group(1).replace('+', ' ').strip()
+        if cand and len(cand) > 1:
+            place_name = cand
+
+    if extracted_lat is not None and extracted_lng is not None:
+        return {
+            "lat": extracted_lat,
+            "lng": extracted_lng,
+            "placeName": place_name,
+            "source": "resolved"
+        }
+
+    raise HTTPException(
+        status_code=422,
+        detail="No se pudieron extraer coordenadas de la URL proporcionada. Puedes escribir las coordenadas directamente (ej: -8.1155, -79.0387) o usar el modo Manual."
+    )
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.main:app", host=HOST, port=PORT, reload=True)
+
