@@ -93,6 +93,7 @@ function mapRowToWorker(r: any): Worker {
     code: r.code,
     name: r.name,
     dni: r.dni,
+    email: r.email || (r.dni ? `${r.dni.toLowerCase()}@mina.pe` : 'minero@mina.pe'),
     age: Number(r.age || 30),
     role: r.role || 'Operador Minero',
     sector: r.sector || 'Socavón Principal',
@@ -618,6 +619,7 @@ Recomendaciones Preventivas:
               code,
               name,
               dni,
+              email: body.email ? body.email.trim().toLowerCase() : (dni ? `${dni}@mina.pe` : 'minero@mina.pe'),
               age,
               role,
               sector: sector as any,
@@ -1043,6 +1045,44 @@ Recomendaciones Preventivas:
             return sendJson(SYSTEM_USERS);
           }
 
+          if (pathname === '/api/users' && method === 'POST') {
+            const body = await parseBody();
+            const newUser = {
+              id: `usr-${Date.now()}`,
+              name: body.name || 'Nuevo Usuario',
+              email: (body.email || '').trim().toLowerCase(),
+              role: body.role || 'supervisor',
+              avatar: body.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+              lastLogin: 'Recién creado',
+              sectorAssigned: body.sectorAssigned || 'Socavón Principal',
+            };
+            SYSTEM_USERS.push(newUser as any);
+            return sendJson(newUser, 201);
+          }
+
+          if (pathname.startsWith('/api/users/') && (method === 'PUT' || method === 'PATCH')) {
+            const userId = pathname.replace('/api/users/', '');
+            const body = await parseBody();
+            const idx = SYSTEM_USERS.findIndex((u) => u.id === userId);
+            if (idx === -1) {
+              return sendJson({ detail: 'Usuario no encontrado' }, 404);
+            }
+            SYSTEM_USERS[idx] = {
+              ...SYSTEM_USERS[idx],
+              ...body,
+            };
+            return sendJson(SYSTEM_USERS[idx]);
+          }
+
+          if (pathname.startsWith('/api/users/') && method === 'DELETE') {
+            const userId = pathname.replace('/api/users/', '');
+            const idx = SYSTEM_USERS.findIndex((u) => u.id === userId);
+            if (idx !== -1) {
+              SYSTEM_USERS.splice(idx, 1);
+            }
+            return sendJson({ success: true });
+          }
+
           if (pathname === '/api/audit-logs' && method === 'GET') {
             return sendJson(auditLogs);
           }
@@ -1053,20 +1093,73 @@ Recomendaciones Preventivas:
             const email = (body.email || '').trim().toLowerCase();
             const password = (body.password || '').trim();
 
+            // Buscar en SYSTEM_USERS por email o DNI
             const foundUser = SYSTEM_USERS.find(
-              (u) => u.email.toLowerCase() === email && u.password === password
+              (u) => (u.email.toLowerCase() === email || (u as any).dni === email) && 
+                     (((u as any).password || 'mineria123') === password || (u as any).dni === password)
             );
 
-            if (foundUser || (email === 'mineria@minerio' && password === 'mineria123')) {
-              const user = foundUser || SYSTEM_USERS[0];
+            if (foundUser) {
+              if (foundUser.status === 'inhabilitado') {
+                return sendJson({ detail: 'Acceso denegado: Tu cuenta de usuario se encuentra inhabilitada. Contacta al administrador.' }, 403);
+              }
               return sendJson({
                 success: true,
                 token: `m10_token_${Date.now()}`,
-                user,
+                user: foundUser,
               });
             }
 
-            return sendJson({ detail: 'Credenciales inválidas. Usuario o clave incorrectos.' }, 401);
+            if (email === 'mineria@minerio' && password === 'mineria123') {
+              const defaultAdmin = SYSTEM_USERS[0];
+              if (defaultAdmin.status === 'inhabilitado') {
+                return sendJson({ detail: 'Acceso denegado: Esta cuenta de administrador se encuentra inhabilitada.' }, 403);
+              }
+              return sendJson({
+                success: true,
+                token: `m10_token_${Date.now()}`,
+                user: defaultAdmin,
+              });
+            }
+
+            // Check worker accounts (Trabajador con Correo y Contraseña = DNI)
+            const foundWorker = workers.find(
+              (w) => (w.email && w.email.toLowerCase() === email) || 
+                     (w.dni && w.dni.toLowerCase() === email) || 
+                     (w.dni && `${w.dni.toLowerCase()}@mina.pe` === email)
+            );
+
+            if (foundWorker) {
+              // Comprobar si el trabajador ha sido inhabilitado en SYSTEM_USERS
+              const linkedUser = SYSTEM_USERS.find((u) => u.workerId === foundWorker.id || (u as any).dni === foundWorker.dni);
+              if (linkedUser && linkedUser.status === 'inhabilitado') {
+                return sendJson({ detail: 'Acceso denegado: Tu cuenta de trabajador se encuentra inhabilitada. Contacta al administrador.' }, 403);
+              }
+
+              if (foundWorker.dni.trim() === password) {
+                const workerUser: SystemUser = {
+                  id: `u-worker-${foundWorker.id}`,
+                  name: foundWorker.name,
+                  email: foundWorker.email || `${foundWorker.dni}@mina.pe`,
+                  dni: foundWorker.dni,
+                  role: 'trabajador',
+                  avatar: foundWorker.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+                  lastLogin: 'En línea',
+                  sectorAssigned: foundWorker.sector,
+                  workerId: foundWorker.id,
+                  status: linkedUser?.status || 'activo',
+                };
+                return sendJson({
+                  success: true,
+                  token: `m10_worker_token_${foundWorker.id}_${Date.now()}`,
+                  user: workerUser,
+                });
+              } else {
+                return sendJson({ detail: 'Contraseña incorrecta. La contraseña de acceso es el DNI del trabajador.' }, 401);
+              }
+            }
+
+            return sendJson({ detail: 'Credenciales inválidas. Verifique correo y contraseña.' }, 401);
           }
 
           if (pathname === '/api/auth/logout' && method === 'POST') {

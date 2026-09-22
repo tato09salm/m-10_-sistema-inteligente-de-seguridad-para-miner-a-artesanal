@@ -21,6 +21,7 @@ class WorkerBase(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = "Nuevo Minero"
     dni: Optional[str] = "00000000"
+    email: Optional[str] = None
     age: Optional[int] = 30
     role: Optional[str] = "Operador Minero"
     sector: Optional[str] = "Socavón Principal"
@@ -41,6 +42,7 @@ class WorkerUpdate(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = None
     dni: Optional[str] = None
+    email: Optional[str] = None
     age: Optional[int] = None
     role: Optional[str] = None
     sector: Optional[str] = None
@@ -132,5 +134,21 @@ class TunnelConnectionCreate(BaseModel):
     distanceMeters: Optional[float] = 5.0
     status: Optional[str] = "abierto"
     notes: Optional[str] = ""
+
+class SystemUserCreate(BaseModel):
+    name: str
+    email: str
+    password: Optional[str] = "mineria123"
+    role: Optional[str] = "supervisor"
+    avatar: Optional[str] = None
+    sectorAssigned: Optional[str] = "Socavón Principal"
+
+class SystemUserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    avatar: Optional[str] = None
+    sectorAssigned: Optional[str] = None
 
 

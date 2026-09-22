@@ -10,7 +10,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, text
 
 from backend.config import HOST, PORT, DB_NAME
 from backend.database import engine, Base, get_db, SessionLocal
@@ -25,6 +25,8 @@ from backend.schemas import (
     MineTunnelCreate,
     MineTunnelUpdate,
     TunnelConnectionCreate,
+    SystemUserCreate,
+    SystemUserUpdate,
 )
 from backend.ml_engine import classify_sensor_stream
 from backend.ai_advisor import get_ai_safety_advice
@@ -37,6 +39,14 @@ async def lifespan(app: FastAPI):
     # Startup: Create tables in PostgreSQL and populate seed data if empty
     print("[FastAPI M-10] Inicializando esquema de base de datos PostgreSQL...")
     Base.metadata.create_all(bind=engine)
+    # Ensure any added columns exist for existing tables
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE workers ADD COLUMN IF NOT EXISTS email VARCHAR(150);"))
+            conn.commit()
+    except Exception as e:
+        print(f"[FastAPI M-10] Nota de migración esquema: {e}")
+
     with SessionLocal() as db:
         seed_database(db)
     print(f"[FastAPI M-10] Base de datos '{DB_NAME}' conectada y sincronizada.")
@@ -109,6 +119,46 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
 
     user = db.query(SystemUser).filter(SystemUser.email.ilike(email)).first()
     if not user:
+        # Check if credentials belong to a registered worker
+        worker = db.query(Worker).filter(Worker.email.ilike(email)).first()
+        if not worker and "@" in email:
+            dni_cand = email.split("@")[0]
+            worker = db.query(Worker).filter(Worker.dni == dni_cand).first()
+
+        if worker:
+            if worker.dni.strip() != password:
+                raise HTTPException(status_code=401, detail="Contraseña incorrecta (la contraseña asignada al trabajador es su DNI).")
+
+            now_iso = datetime.now(timezone.utc).isoformat()
+            audit = AuditLog(
+                id=f"log-{int(time.time() * 1000)}",
+                timestamp=now_iso,
+                user=worker.name,
+                role="trabajador",
+                action="Inicio de Sesión Trabajador",
+                details=f"Acceso al portal personal de trabajador ({worker.email or worker.dni}).",
+                ip=request.client.host if request.client else "127.0.0.1"
+            )
+            db.add(audit)
+            db.commit()
+
+            worker_user_dict = {
+                "id": f"u-worker-{worker.id}",
+                "name": worker.name,
+                "email": worker.email or f"{worker.dni}@mina.pe",
+                "role": "trabajador",
+                "avatar": worker.avatar_url or "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+                "lastLogin": "En línea",
+                "sectorAssigned": worker.sector,
+                "workerId": worker.id,
+            }
+            return {
+                "success": True,
+                "token": f"m10_worker_session_{worker.id}_{int(time.time())}",
+                "user": worker_user_dict,
+                "message": "Autenticación exitosa como trabajador minero."
+            }
+
         # Fallback check for default admin credentials
         if email == "mineria@minerio" and password == "mineria123":
             user = SystemUser(
@@ -239,6 +289,7 @@ def create_worker(payload: WorkerCreate, request: Request, db: Session = Depends
         code=code,
         name=payload.name or "Nuevo Minero",
         dni=payload.dni or "00000000",
+        email=payload.email or f"{payload.dni or 'minero'}@mina.pe",
         age=payload.age or 30,
         role=payload.role or "Operador Minero",
         sector=payload.sector or "Socavón Principal",
@@ -660,6 +711,109 @@ def get_ai_models_report():
 def get_users(db: Session = Depends(get_db)):
     users = db.query(SystemUser).all()
     return [u.to_dict() for u in users]
+
+@app.post("/api/users")
+def create_user(payload: SystemUserCreate, db: Session = Depends(get_db)):
+    email_clean = payload.email.strip().lower()
+    existing = db.query(SystemUser).filter(SystemUser.email.ilike(email_clean)).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya existe un usuario con este correo electrónico.")
+    
+    new_id = f"usr-{uuid.uuid4().hex[:8]}"
+    avatar = payload.avatar
+    if not avatar or not avatar.strip():
+        avatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80"
+        
+    user = SystemUser(
+        id=new_id,
+        name=payload.name.strip(),
+        email=email_clean,
+        password=payload.password or "mineria123",
+        role=payload.role or "supervisor",
+        avatar=avatar.strip(),
+        sector_assigned=payload.sectorAssigned or "Socavón Principal",
+        last_login="Recién creado",
+    )
+    db.add(user)
+    
+    audit = AuditLog(
+        id=f"audit-{uuid.uuid4().hex[:8]}",
+        user="Admin M-10",
+        role="admin",
+        action="CREAR_USUARIO",
+        details=f"Usuario {user.name} ({user.email}) creado con rol {user.role}.",
+        ip="127.0.0.1"
+    )
+    db.add(audit)
+    db.commit()
+    db.refresh(user)
+    return user.to_dict()
+
+@app.put("/api/users/{user_id}")
+@app.patch("/api/users/{user_id}")
+def update_user(user_id: str, payload: SystemUserUpdate, db: Session = Depends(get_db)):
+    user = db.query(SystemUser).filter(SystemUser.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+    if payload.email is not None:
+        email_clean = payload.email.strip().lower()
+        conflict = db.query(SystemUser).filter(SystemUser.email.ilike(email_clean), SystemUser.id != user_id).first()
+        if conflict:
+            raise HTTPException(status_code=400, detail="Ya existe otro usuario con este correo electrónico.")
+        user.email = email_clean
+        
+    if payload.name is not None and payload.name.strip():
+        user.name = payload.name.strip()
+    if payload.role is not None:
+        user.role = payload.role
+    if payload.password is not None and payload.password.strip():
+        user.password = payload.password.strip()
+    if payload.avatar is not None and payload.avatar.strip():
+        user.avatar = payload.avatar.strip()
+    if payload.sectorAssigned is not None:
+        user.sector_assigned = payload.sectorAssigned
+        
+    audit = AuditLog(
+        id=f"audit-{uuid.uuid4().hex[:8]}",
+        user="Admin M-10",
+        role="admin",
+        action="ACTUALIZAR_USUARIO",
+        details=f"Usuario {user.name} ({user.email}) actualizado (rol: {user.role}).",
+        ip="127.0.0.1"
+    )
+    db.add(audit)
+    db.commit()
+    db.refresh(user)
+    return user.to_dict()
+
+@app.delete("/api/users/{user_id}")
+def delete_user(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(SystemUser).filter(SystemUser.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Don't delete if it's the last admin
+    if user.role == "admin":
+        admin_count = db.query(SystemUser).filter(SystemUser.role == "admin").count()
+        if admin_count <= 1:
+            raise HTTPException(status_code=400, detail="No se puede eliminar el único administrador del sistema.")
+            
+    user_name = user.name
+    user_email = user.email
+    db.delete(user)
+    
+    audit = AuditLog(
+        id=f"audit-{uuid.uuid4().hex[:8]}",
+        user="Admin M-10",
+        role="admin",
+        action="ELIMINAR_USUARIO",
+        details=f"Usuario {user_name} ({user_email}) eliminado del sistema.",
+        ip="127.0.0.1"
+    )
+    db.add(audit)
+    db.commit()
+    return {"success": True, "message": f"Usuario {user_name} eliminado exitosamente."}
 
 @app.get("/api/audit-logs")
 def get_audit_logs(db: Session = Depends(get_db)):

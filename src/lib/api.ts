@@ -115,6 +115,43 @@ export const api = {
     return res.json();
   },
 
+  async createUser(data: { name: string; email: string; password?: string; role?: string; avatar?: string; sectorAssigned?: string }): Promise<SystemUser> {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al crear usuario' }));
+      throw new Error(err.detail || 'Error al crear usuario');
+    }
+    return res.json();
+  },
+
+  async updateUser(id: string, data: { name?: string; email?: string; password?: string; role?: string; avatar?: string; sectorAssigned?: string }): Promise<SystemUser> {
+    const res = await fetch(`/api/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al actualizar usuario' }));
+      throw new Error(err.detail || 'Error al actualizar usuario');
+    }
+    return res.json();
+  },
+
+  async deleteUser(id: string): Promise<{ success: boolean; message?: string }> {
+    const res = await fetch(`/api/users/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Error al eliminar usuario' }));
+      throw new Error(err.detail || 'Error al eliminar usuario');
+    }
+    return res.json();
+  },
+
   async getAuditLogs(): Promise<AuditLog[]> {
     const res = await fetch('/api/audit-logs');
     return res.json();

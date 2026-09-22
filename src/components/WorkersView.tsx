@@ -25,7 +25,8 @@ import {
   Check,
   X,
   Loader2,
-  ShieldCheck
+  ShieldCheck,
+  Mail
 } from 'lucide-react';
 import { Worker, MiningSector, RiskLevel, WorkerStatus, MineTunnel } from '../types';
 
@@ -119,6 +120,7 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     dni: '',
+    email: '',
     age: 32,
     role: 'Perforista de Veta Aurífera',
     sector: 'Nivel -120m',
@@ -136,6 +138,7 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
       w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       w.dni.includes(searchTerm) ||
+      (w.email && w.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       w.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
       w.sector.toLowerCase().includes(searchTerm.toLowerCase());
     const matchSector = selectedSector === 'todos' || w.sector === selectedSector;
@@ -149,6 +152,7 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
     setFormData({
       name: '',
       dni: '',
+      email: '',
       age: 30,
       role: 'Perforista de Veta Aurífera',
       sector: availableSectors[0] || 'Socavón Principal',
@@ -168,6 +172,7 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
     setFormData({
       name: worker.name,
       dni: worker.dni,
+      email: worker.email || `${worker.dni}@mina.pe`,
       age: worker.age,
       role: worker.role,
       sector: worker.sector,
@@ -194,9 +199,11 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
     }
 
     setIsSaving(true);
+    const workerEmail = formData.email.trim() || `${formData.dni.trim()}@mina.pe`;
     const payload: Partial<Worker> = {
       name: formData.name.trim(),
       dni: formData.dni.trim(),
+      email: workerEmail,
       age: Number(formData.age) || 30,
       role: formData.role.trim(),
       sector: formData.sector as any,
@@ -355,6 +362,10 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
                       </div>
                       <h3 className="text-sm font-bold text-white leading-tight mt-0.5">{worker.name}</h3>
                       <p className="text-[11px] text-gray-400">{worker.role}</p>
+                      <p className="text-[10px] text-gray-400 font-mono flex items-center gap-1 mt-0.5">
+                        <Mail className="w-3 h-3 text-[#D4AF37]" />
+                        <span>{worker.email || `${worker.dni}@mina.pe`}</span>
+                      </p>
                     </div>
                   </div>
 
@@ -576,7 +587,7 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 mb-1 font-semibold">DNI*</label>
+                    <label className="block text-gray-400 mb-1 font-semibold">DNI (Contraseña de Acceso) *</label>
                     <input
                       type="text"
                       required
@@ -585,6 +596,24 @@ export const WorkersView: React.FC<WorkersViewProps> = ({
                       placeholder="Ej. 45892134"
                       className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-[#D4AF37]"
                     />
+                    <span className="text-[10px] text-[#D4AF37] mt-0.5 block">
+                      🔑 Su clave de ingreso es su DNI
+                    </span>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-gray-400 mb-1 font-semibold">Correo Electrónico (Para entrar a la página) *</label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="Ej. santos.quispe@mina.pe"
+                      className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    <span className="text-[10px] text-gray-400 mt-0.5 block">
+                      El trabajador podrá ingresar con este correo y su DNI como contraseña.
+                    </span>
                   </div>
 
                   <div>

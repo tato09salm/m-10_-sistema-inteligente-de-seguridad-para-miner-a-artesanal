@@ -3,7 +3,7 @@ export type WorkerStatus = 'normal' | 'advertencia' | 'peligro' | 'inactivo';
 export type ActivityType = 'actividad_normal' | 'movimiento_inusual' | 'posible_caida' | 'inmovilidad_prolongada';
 export type AlertPriority = 'critica' | 'alta' | 'media' | 'baja';
 export type AlertStatus = 'activa' | 'en_atencion' | 'resuelta';
-export type UserRole = 'admin' | 'supervisor' | 'rescatista';
+export type UserRole = 'admin' | 'supervisor' | 'rescatista' | 'trabajador';
 export type MiningSector = 'Socavón Principal' | 'Nivel -50m' | 'Nivel -120m' | 'Galería Norte' | 'Chimenea 3' | 'Frente de Extracción';
 
 export interface Worker {
@@ -11,6 +11,7 @@ export interface Worker {
   code: string;
   name: string;
   dni: string;
+  email: string;
   age: number;
   role: string;
   sector: MiningSector;
@@ -103,6 +104,10 @@ export interface SystemUser {
   avatar: string;
   lastLogin: string;
   sectorAssigned?: string;
+  workerId?: string;
+  dni?: string;
+  password?: string;
+  status?: 'activo' | 'inhabilitado';
 }
 
 export interface AuditLog {

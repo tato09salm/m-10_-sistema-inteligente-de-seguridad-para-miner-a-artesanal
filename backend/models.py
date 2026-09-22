@@ -30,6 +30,7 @@ class Worker(Base):
     code = Column(String(30), unique=True, nullable=False, index=True)
     name = Column(String(150), nullable=False)
     dni = Column(String(20), nullable=False)
+    email = Column(String(150), nullable=True)
     age = Column(Integer, default=30)
     role = Column(String(100), default="Operador Minero")
     sector = Column(String(100), default="Socavón Principal")
@@ -55,6 +56,7 @@ class Worker(Base):
             "code": self.code,
             "name": self.name,
             "dni": self.dni,
+            "email": self.email or f"{self.dni}@mina.pe",
             "age": self.age,
             "role": self.role,
             "sector": self.sector,

@@ -237,38 +237,61 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                   theme === 'dark' ? 'text-gray-400' : 'text-slate-600'
                 }`}>
                   <Zap className="w-3 h-3 text-[#D4AF37]" />
-                  Credenciales Preconfiguradas
+                  Credenciales de Acceso
                 </span>
-                <button
-                  type="button"
-                  id="btn-fill-demo-credentials"
-                  onClick={handleFillDemo}
-                  className="text-[11px] text-[#B45309] dark:text-[#D4AF37] hover:underline font-semibold cursor-pointer"
-                >
-                  Autocompletar
-                </button>
               </div>
 
-              <div 
-                onClick={handleFillDemo}
-                className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between group ${
-                  theme === 'dark'
-                    ? 'bg-[#0F1115] border-[#D4AF37]/20 hover:border-[#D4AF37]/50'
-                    : 'bg-[#FFFDF7] border-[#D4AF37]/35 hover:border-[#D4AF37] shadow-sm'
-                }`}
-              >
-                <div className="text-xs space-y-0.5 font-mono">
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}>
-                    <span className={theme === 'dark' ? 'text-gray-500' : 'text-slate-400'}>Correo:</span> <strong className="text-[#B45309] dark:text-[#D4AF37]">mineria@minerio</strong>
-                  </p>
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-slate-700'}>
-                    <span className={theme === 'dark' ? 'text-gray-500' : 'text-slate-400'}>Clave:</span> <strong className={theme === 'dark' ? 'text-gray-200' : 'text-slate-900'}>mineria123</strong>
-                  </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                {/* Admin demo */}
+                <div 
+                  onClick={handleFillDemo}
+                  className={`p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between group ${
+                    theme === 'dark'
+                      ? 'bg-[#0F1115] border-[#D4AF37]/20 hover:border-[#D4AF37]/50'
+                      : 'bg-[#FFFDF7] border-[#D4AF37]/35 hover:border-[#D4AF37] shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-[#D4AF37] uppercase">Administrador</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#D4AF37]/15 text-[#B45309] dark:text-[#D4AF37] font-semibold group-hover:bg-[#D4AF37] group-hover:text-black transition-colors">
+                      Usar
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono mt-1 space-y-0.5">
+                    <p className="truncate text-gray-300">mineria@minerio</p>
+                    <p className="text-gray-400">Clave: mineria123</p>
+                  </div>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-[#D4AF37]/15 text-[#B45309] dark:text-[#D4AF37] font-semibold group-hover:bg-[#D4AF37] group-hover:text-black transition-colors">
-                  Usar
-                </span>
+
+                {/* Worker demo */}
+                <div 
+                  onClick={() => {
+                    setEmail('santos.quispe@mina.pe');
+                    setPassword('45892134');
+                    setErrorMessage(null);
+                  }}
+                  className={`p-2.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between group ${
+                    theme === 'dark'
+                      ? 'bg-[#0F1115] border-blue-500/20 hover:border-blue-500/50'
+                      : 'bg-[#F0F9FF] border-blue-400/35 hover:border-blue-500 shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-blue-400 uppercase">Trabajador</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-400 font-semibold group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                      Usar
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono mt-1 space-y-0.5">
+                    <p className="truncate text-gray-300">santos.quispe@mina.pe</p>
+                    <p className="text-blue-400 font-semibold">Clave: 45892134 (DNI)</p>
+                  </div>
+                </div>
               </div>
+
+              <p className="text-[10px] text-gray-400 text-center leading-tight">
+                💡 Los trabajadores pueden entrar con su <strong>Correo</strong> (o DNI) y su <strong>contraseña es su DNI</strong>.
+              </p>
             </div>
 
           </div>

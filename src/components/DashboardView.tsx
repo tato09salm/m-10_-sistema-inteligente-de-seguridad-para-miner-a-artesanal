@@ -23,6 +23,7 @@ import {
 } from 'recharts';
 import { Worker, Alert, MiningSector, DashboardStats, MineTunnel, TunnelConnection } from '../types';
 import { MineMap3D } from './MineMap3D';
+import { useTheme } from '../lib/ThemeContext';
 
 interface DashboardViewProps {
   workers: Worker[];
@@ -70,6 +71,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   connections = [],
 }) => {
   const navigate = onNavigate || onNavigateToTab || (() => {});
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const activeAlerts = alerts.filter(a => a.status === 'activa');
   const criticalAlerts = activeAlerts.filter(a => a.priority === 'critica');
   const fallsToday = alerts.filter(a => a.type === 'caida_detectada').length;
@@ -290,22 +293,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left 8 Cols: Subterranean Interactive Mine Sector Map (3D / 2D) */}
-        <div className="lg:col-span-8 bg-[#1A1C22] rounded-2xl border border-[#D4AF37]/10 p-5 lg:p-6 shadow-2xl flex flex-col justify-between relative">
+        <div className={`lg:col-span-8 rounded-2xl border p-5 lg:p-6 shadow-2xl flex flex-col justify-between relative transition-colors ${
+          isLight 
+            ? 'bg-white border-slate-200 shadow-slate-200/50 text-slate-800' 
+            : 'bg-[#1A1C22] border-[#D4AF37]/10 text-white'
+        }`}>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="w-2.5 h-2.5 bg-[#D4AF37] rounded-full animate-pulse"></span>
-                <h2 className="text-sm sm:text-base font-bold text-white tracking-wide">
+                <h2 className={`text-sm sm:text-base font-bold tracking-wide ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Mapa de Socavones & Mineros en Tiempo Real
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30 uppercase">
                   {mapViewMode === '3d' ? '3D INTERACTIVO' : 'PLANO 2D'}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                   <Cable className="w-2.5 h-2.5" /> {(connections || []).length} CABLES ACTIVOS
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className={`text-[11px] mt-0.5 ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>
                 Topografía subterránea y ubicación de mineros en socavones, niveles de extracción y chimeneas.
               </p>
             </div>
@@ -314,21 +321,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate('socavones')}
-                className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-white/5 hover:bg-[#D4AF37]/20 border border-white/10 hover:border-[#D4AF37]/40 text-gray-300 hover:text-[#D4AF37] flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+                className={`px-2.5 py-1 rounded-xl text-xs font-semibold border flex items-center gap-1.5 cursor-pointer transition-all shadow-sm ${
+                  isLight 
+                    ? 'bg-slate-100 hover:bg-amber-50 border-slate-200 hover:border-amber-400 text-slate-700 hover:text-amber-700' 
+                    : 'bg-white/5 hover:bg-[#D4AF37]/20 border-white/10 hover:border-[#D4AF37]/40 text-gray-300 hover:text-[#D4AF37]'
+                }`}
                 title="Tender o gestionar cables entre socavones"
               >
                 <Cable className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Conectar Socavones</span>
               </button>
 
-              <div className="flex items-center gap-1 bg-[#0F1115] p-1 rounded-xl border border-white/10 shrink-0">
+              <div className={`flex items-center gap-1 p-1 rounded-xl border shrink-0 ${
+                isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#0F1115] border-white/10'
+              }`}>
                 <button
                   id="btn-map-mode-3d"
                   onClick={() => setMapViewMode('3d')}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                     mapViewMode === '3d'
                       ? 'bg-[#D4AF37] text-black shadow-md font-bold'
-                      : 'text-gray-400 hover:text-white'
+                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-gray-400 hover:text-white'
                   }`}
                   title="Ver Modelo 3D Subterráneo con rotación, profundidad y zoom"
                 >
@@ -342,7 +355,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                     mapViewMode === '2d'
                       ? 'bg-[#D4AF37] text-black shadow-md font-bold'
-                      : 'text-gray-400 hover:text-white'
+                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-gray-400 hover:text-white'
                   }`}
                   title="Ver Esquema 2D Tradicional"
                 >
@@ -368,12 +381,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           ) : (
             /* 2D Subterranean Schematic with Dynamic Orthogonal Continuous Cables */
-            <div className="w-full h-84 rounded-xl bg-[#0F1115] border border-white/5 relative overflow-hidden p-4">
+            <div className={`w-full h-84 rounded-xl border relative overflow-hidden p-4 transition-colors ${
+              isLight ? 'bg-slate-100/90 border-slate-300' : 'bg-[#0F1115] border-white/5'
+            }`}>
               {/* Grid Background */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-15"
+                className="absolute inset-0 pointer-events-none opacity-20"
                 style={{
-                  backgroundImage: 'radial-gradient(circle at 50% 50%, #D4AF37 1px, transparent 1px)',
+                  backgroundImage: isLight 
+                    ? 'radial-gradient(circle at 50% 50%, #94a3b8 1px, transparent 1px)' 
+                    : 'radial-gradient(circle at 50% 50%, #D4AF37 1px, transparent 1px)',
                   backgroundSize: '32px 32px'
                 }}
               />
@@ -382,7 +399,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
                 <defs>
                   <filter id="dash-cable-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#D4AF37" floodOpacity="0.6" />
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={isLight ? '#b87333' : '#D4AF37'} floodOpacity="0.6" />
                   </filter>
                 </defs>
 
@@ -429,7 +446,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         className="overflow-visible"
                       >
                         <div 
-                          className="px-1 py-0.2 rounded-full text-[8px] font-mono text-center font-bold bg-[#121418]/90 text-gray-200 border shadow-md"
+                          className={`px-1 py-0.2 rounded-full text-[8px] font-mono text-center font-bold border shadow-md ${
+                            isLight ? 'bg-white/95 text-slate-800' : 'bg-[#121418]/90 text-gray-200'
+                          }`}
                           style={{ borderColor: color }}
                         >
                           {conn.dist}m
@@ -468,11 +487,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           ? 'bg-red-950 border-red-500 text-red-200 shadow-red-500/30' 
                           : hasWarning 
                           ? 'bg-[#B87333]/20 border-[#B87333] text-[#FDBA74]' 
+                          : isLight
+                          ? 'bg-white border-slate-300 text-slate-800 hover:border-[#D4AF37] hover:shadow-lg'
                           : 'bg-[#1F2229] border-[#C0C0C0]/20 text-gray-200 hover:border-[#D4AF37] hover:shadow-lg'
                       }`}>
                         <MapPin className={`w-3.5 h-3.5 ${hasHazard ? 'text-red-400 animate-bounce' : hasWarning ? 'text-[#B87333]' : 'text-[#D4AF37]'}`} />
                         <span className="truncate max-w-[110px]">{sector.name}</span>
-                        <span className="text-[10px] font-mono px-1 rounded bg-[#0F1115] text-gray-300">
+                        <span className={`text-[10px] font-mono px-1 rounded ${
+                          isLight ? 'bg-slate-100 text-slate-700' : 'bg-[#0F1115] text-gray-300'
+                        }`}>
                           {sectorWorkers.length}
                         </span>
                         {connectedCount > 0 && (
@@ -484,30 +507,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                       {/* Lateral Connection Pins ("de cuadrado a cuadrado") */}
                       <span className={`absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border ${
-                        connectedCount > 0 ? 'bg-amber-400 border-amber-300' : 'bg-gray-700 border-gray-600'
+                        connectedCount > 0 ? 'bg-amber-400 border-amber-300' : isLight ? 'bg-slate-300 border-slate-400' : 'bg-gray-700 border-gray-600'
                       }`} />
                       <span className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border ${
-                        connectedCount > 0 ? 'bg-amber-400 border-amber-300' : 'bg-gray-700 border-gray-600'
+                        connectedCount > 0 ? 'bg-amber-400 border-amber-300' : isLight ? 'bg-slate-300 border-slate-400' : 'bg-gray-700 border-gray-600'
                       }`} />
 
                       {/* Sector Tooltip */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-[#1A1C22] border border-[#D4AF37]/20 rounded-lg p-2.5 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-                        <div className="text-[11px] font-bold text-white flex items-center justify-between">
+                      <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 border rounded-lg p-2.5 shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-[#1A1C22] border-[#D4AF37]/20 text-white'
+                      }`}>
+                        <div className={`text-[11px] font-bold flex items-center justify-between ${isLight ? 'text-slate-900' : 'text-white'}`}>
                           <span>{sector.name}</span>
                           <span className="text-[9px] text-[#D4AF37] font-mono">{connectedCount} cables</span>
                         </div>
-                        <div className="text-[10px] text-gray-400">{sector.depth}</div>
-                        <div className="mt-1 pt-1 border-t border-white/5 space-y-1">
+                        <div className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>{sector.depth}</div>
+                        <div className={`mt-1 pt-1 border-t space-y-1 ${isLight ? 'border-slate-100' : 'border-white/5'}`}>
                           {sectorWorkers.length === 0 ? (
-                            <div className="text-[9px] text-gray-500 italic">Sin mineros asignados</div>
+                            <div className={`text-[9px] italic ${isLight ? 'text-slate-400' : 'text-gray-500'}`}>Sin mineros asignados</div>
                           ) : (
                             sectorWorkers.map(w => (
-                              <div key={w.id} className="text-[10px] flex items-center justify-between text-gray-300">
+                              <div key={w.id} className={`text-[10px] flex items-center justify-between ${isLight ? 'text-slate-700' : 'text-gray-300'}`}>
                                 <span>{w.name.split(' ')[0]}</span>
                                 <span className={`px-1 rounded text-[9px] ${
-                                  w.status === 'peligro' ? 'bg-red-500/20 text-red-300' :
-                                  w.status === 'advertencia' ? 'bg-[#B87333]/20 text-[#FDBA74]' :
-                                  'bg-emerald-500/20 text-emerald-300'
+                                  w.status === 'peligro' ? 'bg-red-500/20 text-red-600 dark:text-red-300' :
+                                  w.status === 'advertencia' ? 'bg-[#B87333]/20 text-[#B87333] dark:text-[#FDBA74]' :
+                                  'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
                                 }`}>
                                   {w.status}
                                 </span>
@@ -523,14 +548,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           )}
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
+          <div className={`mt-4 flex flex-wrap items-center justify-between gap-2 text-xs ${isLight ? 'text-slate-500' : 'text-gray-400'}`}>
             <span className="flex items-center gap-1.5 font-mono text-[11px]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Gateway Socavón: Mesh LoRa/Wi-Fi Subterráneo Activo
             </span>
             <button
               onClick={() => navigate('monitoring')}
-              className="text-[#D4AF37] hover:text-white flex items-center gap-1 font-semibold transition-colors cursor-pointer"
+              className="text-[#D4AF37] hover:underline flex items-center gap-1 font-semibold transition-colors cursor-pointer"
             >
               Ver osciloscopio en vivo <ArrowRight className="w-3.5 h-3.5" />
             </button>

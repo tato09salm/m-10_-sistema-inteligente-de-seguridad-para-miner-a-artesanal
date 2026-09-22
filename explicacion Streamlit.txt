@@ -1,0 +1,97 @@
+================================================================================
+GUÍA SENCILLA Y RESALTANTE DEL DASHBOARD STREAMLIT (SISTEMA M-10)
+================================================================================
+
+1. ¿QUÉ ES ESTE PROYECTO Y CUÁL ES SU OBJETIVO?
+--------------------------------------------------------------------------------
+Es un sistema inteligente diseñado para proteger a mineros artesanales que trabajan 
+en túneles subterráneos peligrosos. Mediante sensores colocados en el casco o cinturón 
+(acelerómetro y giroscopio), el sistema detecta de inmediato si un minero se cae, 
+se resbala o queda atrapado/inmóvil por un derrumbe, y envía una alarma de rescate 
+en menos de 1 segundo sin necesidad de internet.
+
+
+2. METODOLOGÍA CRISP-DM: ¿CÓMO ESTÁ ORGANIZADO EL TRABAJO?
+--------------------------------------------------------------------------------
+Se utilizó la metodología estándar internacional de ciencia de datos (CRISP-DM) 
+dividida en 6 pasos sencillos:
+
+• Fase 1 - Comprensión del Negocio: Entender el peligro en la mina y definir que 
+  lo primordial es NUNCA ignorar una caída real (cero falsos negativos).
+• Fase 2 - Comprensión de los Datos: Explorar el dataset público internacional 
+  SisFall (20,064 muestras de movimientos humanos).
+• Fase 3 - Preparación de Datos: Cortar las señales en ventanas de 2.56 segundos 
+  (128 lecturas a 50 Hz) y calcular la magnitud total del impacto (SVM).
+• Fase 4 - Modelado: Construir y entrenar 5 tipos de Inteligencia Artificial 
+  (Redes Convolucionales 1D, Bi-LSTM, GRU y combinaciones híbridas).
+• Fase 5 - Evaluación: Someter los modelos a pruebas matemáticas y estadísticas 
+  rigurosas para certificar cuál es el mejor.
+• Fase 6 - Despliegue: Simular el funcionamiento en tiempo real dentro del casco 
+  minero con transmisión por radio de largo alcance (LoRaWAN).
+
+
+3. ¿QUÉ ES EL ANÁLISIS EXPLORATORIO DE DATOS (EDA)?
+--------------------------------------------------------------------------------
+Es la radiografía de los sensores antes de entrenar la IA:
+• Muestra cómo se mueven los 8 canales (aceleración X, Y, Z y giroscopio X, Y, Z).
+• En una caída se ve clarísimo: primero el cuerpo flota un instante (ingravidez, 0g) 
+  y luego viene un impacto brutal (> 3.5 veces la gravedad) con giros rápidos.
+• En inmovilidad (atrapamiento), la señal es una línea plana sin variación.
+
+
+4. ¿POR QUÉ SE ELIGIÓ LA RED "1D-CNN" COMO LA GANADORA? (PUNTO CLAVE)
+--------------------------------------------------------------------------------
+Entre las 5 arquitecturas probadas, la 1D-CNN (Red Convolucional 1D) fue la mejor por 
+3 razones prácticas decisivas:
+
+1) Cero Fallas en Caídas (100% Exactitud): Acertó todas las caídas de prueba sin 
+   ningún falso negativo (no deja a nadie sin auxilio).
+2) Ultra Rápida (0.23 milisegundos): Es casi 4 veces más rápida que las redes 
+   recurrentes (LSTM), reaccionando al instante.
+3) Muy Liviana (632 KB): Pesa muy poco, por lo que entra fácilmente en el chip 
+   económico de un casco minero sin gastar batería (dura más de 16 horas).
+
+
+5. ¿QUÉ SON LA VALIDACIÓN CRUZADA Y LAS PRUEBAS ESTADÍSTICAS?
+--------------------------------------------------------------------------------
+Para que el artículo científico sea aceptado, no basta decir "mi modelo sacó 100%". 
+Hay que demostrarlo con pruebas estadísticas robustas:
+
+• Validación Cruzada K-Fold (5 y 10 Folds): Se dividieron los datos en 5 y 10 partes 
+  distintas. En todas, el modelo sacó prácticamente el mismo resultado (variación 
+  menor al 0.1%), demostrando que no fue suerte ni trampa (sin overfitting).
+• Prueba de Shapiro-Wilk: Confirma si los datos tienen distribución normal.
+• Test de Friedman y ANOVA (p < 0.001): Demuestran científicamente que las 
+  diferencias entre los 5 modelos son reales y no producto del azar.
+• Test de Wilcoxon con Bonferroni: Ratifica con 99% de certeza matemática que la 
+  1D-CNN es superior en velocidad frente a las redes LSTM y GRU.
+
+
+6. ¿QUÉ CONTIENE EL COMPENDIO PARA EL ARTÍCULO? (6 TABLAS Y 6 FIGURAS)
+--------------------------------------------------------------------------------
+El dashboard ya deja listas y numeradas las 6 tablas y 6 figuras obligatorias:
+
+LAS 6 TABLAS:
+• Tabla 1: Características del dataset SisFall (sensores, frecuencia, muestras).
+• Tabla 2: Detalle técnico de las 5 redes (capas, neuronas, peso en KB).
+• Tabla 3: Mejores hiperparámetros encontrados (learning rate, batch size, dropout).
+• Tabla 4: Comparativa de resultados en el conjunto de prueba (exactitud y latencia).
+• Tabla 5: Resultados de Validación Cruzada (promedios e intervalos de confianza 95%).
+• Tabla 6: Resumen de las pruebas de hipótesis estadísticas (Friedman, Wilcoxon, etc.).
+
+LAS 6 FIGURAS:
+• Figura 1: Gráfico de las señales del sensor durante una caída vs descanso.
+• Figura 2: Matriz de correlación entre los sensores de aceleración y giro.
+• Figura 3: Coordenadas paralelas de cómo los hiperparámetros afectan la exactitud.
+• Figura 4: Matriz de confusión (demuestra 0 errores en caídas).
+• Figura 5: Diagrama de cajas (boxplots) de estabilidad entre folds.
+• Figura 6: Gráfico de Trade-off (Latencia vs Tamaño de memoria) y matriz de p-valores.
+
+
+7. EXPORTACIÓN DE REPORTES (WORD, PDF Y EXCEL)
+--------------------------------------------------------------------------------
+Con un solo clic puedes descargar:
+• Word (.docx): Manuscrito redactado con el texto e interpretaciones listo para copiar.
+• PDF (.pdf): Informe ejecutivo visual para presentar a profesores o evaluadores.
+• Excel (.xlsx): Libro con 6 hojas de cálculo con todas las tablas numéricas.
+================================================================================

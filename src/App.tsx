@@ -35,7 +35,15 @@ export default function App() {
     return Boolean(localStorage.getItem('m10_auth_token'));
   });
 
-  const [currentModule, setCurrentModule] = useState<string>('dashboard');
+  // Persistent Module Navigation with Browser History Integration
+  const [currentModule, setCurrentModule] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabFromUrl = params.get('tab') || params.get('mod');
+    if (tabFromUrl) return tabFromUrl;
+    return localStorage.getItem('m10_last_module') || 'dashboard';
+  });
+
+  const [navigationHistory, setNavigationHistory] = useState<string[]>([currentModule]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Core Data States
@@ -65,12 +73,14 @@ export default function App() {
   // Load initial state from backend
   const loadData = useCallback(async () => {
     try {
-      const [fetchedWorkers, fetchedAlerts, fetchedStats, fetchedTunnels, fetchedConns] = await Promise.all([
+      const [fetchedWorkers, fetchedAlerts, fetchedStats, fetchedTunnels, fetchedConns, fetchedUsers, fetchedLogs] = await Promise.all([
         api.getWorkers(),
         api.getAlerts(),
         api.getStats(),
         api.getSocavones().catch(() => []),
         api.getTunnelConnections().catch(() => []),
+        api.getUsers().catch(() => []),
+        api.getAuditLogs().catch(() => []),
       ]);
 
       if (fetchedWorkers && fetchedWorkers.length > 0) {
@@ -87,6 +97,29 @@ export default function App() {
       if (fetchedConns) {
         setConnections(fetchedConns);
       }
+      if (fetchedUsers && fetchedUsers.length > 0) {
+        // Asegurar que todos los trabajadores registrados tengan cuenta visible en 9. Usuarios
+        const existingIds = new Set(fetchedUsers.map((u: SystemUser) => u.workerId || u.dni).filter(Boolean));
+        const additionalWorkerUsers: SystemUser[] = (fetchedWorkers || [])
+          .filter((w: Worker) => !existingIds.has(w.id) && !existingIds.has(w.dni))
+          .map((w: Worker) => ({
+            id: `u-worker-${w.id}`,
+            name: w.name,
+            email: w.email || `${w.dni}@mina.pe`,
+            dni: w.dni,
+            password: w.dni,
+            role: 'trabajador',
+            avatar: w.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+            lastLogin: 'En línea',
+            sectorAssigned: w.sector,
+            workerId: w.id,
+            status: 'activo',
+          }));
+        setUsers([...fetchedUsers, ...additionalWorkerUsers]);
+      }
+      if (fetchedLogs && fetchedLogs.length > 0) {
+        setAuditLogs(fetchedLogs);
+      }
     } catch (err) {
       console.warn('Using client-side fallback data:', err);
     }
@@ -100,6 +133,128 @@ export default function App() {
     return () => clearInterval(interval);
   }, [loadData, isSimModalOpen, isPhoneConnectModalOpen]);
 
+  // Navigation that syncs with real browser history
+  const navigateTo = useCallback((module: string, replace = false) => {
+    if (module === currentModule) return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', module);
+
+    if (replace) {
+      window.history.replaceState({ module }, '', url.toString());
+    } else {
+      window.history.pushState({ module }, '', url.toString());
+    }
+
+    setNavigationHistory((prev) => [...prev, module]);
+    setCurrentModule(module);
+    localStorage.setItem('m10_last_module', module);
+  }, [currentModule]);
+
+  // Handle going back cleanly without closing the application
+  const handleGoBack = useCallback(() => {
+    // If any modal is open, close it first
+    if (isSimModalOpen) {
+      setIsSimModalOpen(false);
+      return;
+    }
+    if (isPhoneConnectModalOpen) {
+      setIsPhoneConnectModalOpen(false);
+      return;
+    }
+    if (isPostgresModalOpen) {
+      setIsPostgresModalOpen(false);
+      return;
+    }
+
+    // If there is history within the session
+    if (navigationHistory.length > 1) {
+      window.history.back();
+    } else if (currentModule !== 'dashboard') {
+      navigateTo('dashboard');
+    }
+  }, [isSimModalOpen, isPhoneConnectModalOpen, isPostgresModalOpen, navigationHistory.length, currentModule, navigateTo]);
+
+  // Browser History (popstate) & Modal dismissal on Back
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('tab') && !url.searchParams.has('mobile')) {
+      url.searchParams.set('tab', currentModule);
+      window.history.replaceState({ module: currentModule }, '', url.toString());
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      // 1. If any modal is open, close modal and stay on module
+      if (isSimModalOpen) {
+        setIsSimModalOpen(false);
+        return;
+      }
+      if (isPhoneConnectModalOpen) {
+        setIsPhoneConnectModalOpen(false);
+        return;
+      }
+      if (isPostgresModalOpen) {
+        setIsPostgresModalOpen(false);
+        return;
+      }
+
+      // 2. Read module from history state or URL parameter
+      const params = new URLSearchParams(window.location.search);
+      const modFromParam = params.get('tab') || params.get('mod');
+      const targetModule = event.state?.module || modFromParam || 'dashboard';
+
+      setCurrentModule(targetModule);
+      setNavigationHistory((prev) => {
+        if (prev.length > 1) {
+          return prev.slice(0, -1);
+        }
+        return [targetModule];
+      });
+      localStorage.setItem('m10_last_module', targetModule);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentModule, isSimModalOpen, isPhoneConnectModalOpen, isPostgresModalOpen]);
+
+  // Keyboard Navigation Shortcuts (Alt + ArrowLeft to Go Back, Alt + 1-9 to Switch Modules)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+        return;
+      }
+
+      // Alt + LeftArrow: Go Back
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleGoBack();
+        return;
+      }
+
+      // Alt + 1 to 9: Direct Module Jump
+      if (e.altKey && e.key >= '1' && e.key <= '9') {
+        e.preventDefault();
+        const map: Record<string, string> = {
+          '1': 'dashboard',
+          '2': 'workers',
+          '3': 'monitoring',
+          '4': 'socavones',
+          '5': 'ai_model',
+          '6': 'alerts',
+          '7': 'reports',
+          '8': 'history',
+          '9': 'users',
+        };
+        const target = map[e.key];
+        if (target) navigateTo(target);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleGoBack, navigateTo]);
+
   // Handle worker selection
   const handleSelectWorker = (worker: Worker) => {
     setSelectedWorker(worker);
@@ -111,10 +266,58 @@ export default function App() {
       const updated = await api.updateWorker(workerData.id, workerData);
       setWorkers(prev => prev.map(w => w.id === updated.id ? updated : w));
       if (selectedWorker.id === updated.id) setSelectedWorker(updated);
+
+      // Sincronizar en lista de usuarios
+      const workerEmail = updated.email || `${updated.dni}@mina.pe`;
+      setUsers(prev => {
+        const idx = prev.findIndex(u => u.workerId === updated.id || u.dni === updated.dni);
+        if (idx !== -1) {
+          const copy = [...prev];
+          copy[idx] = {
+            ...copy[idx],
+            name: updated.name,
+            email: workerEmail,
+            dni: updated.dni,
+            password: updated.dni,
+            sectorAssigned: updated.sector,
+          };
+          return copy;
+        }
+        return [...prev, {
+          id: `u-worker-${updated.id}`,
+          name: updated.name,
+          email: workerEmail,
+          dni: updated.dni,
+          password: updated.dni,
+          role: 'trabajador',
+          avatar: updated.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          lastLogin: 'En línea',
+          sectorAssigned: updated.sector,
+          workerId: updated.id,
+          status: 'activo',
+        }];
+      });
     } else {
       const created = await api.createWorker(workerData);
       setWorkers(prev => [created, ...prev]);
       setSelectedWorker(created);
+
+      // Crear cuenta en users
+      const workerEmail = created.email || `${created.dni}@mina.pe`;
+      const newWorkerUser: SystemUser = {
+        id: `u-worker-${created.id}`,
+        name: created.name,
+        email: workerEmail,
+        dni: created.dni,
+        password: created.dni,
+        role: 'trabajador',
+        avatar: created.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        lastLogin: 'En línea',
+        sectorAssigned: created.sector,
+        workerId: created.id,
+        status: 'activo',
+      };
+      setUsers(prev => [...prev, newWorkerUser]);
     }
   };
 
@@ -171,8 +374,52 @@ export default function App() {
     localStorage.setItem('m10_auth_user', JSON.stringify(userMatch));
   };
 
+  const handleSelectUserSession = (user: SystemUser) => {
+    setCurrentUser(user);
+    localStorage.setItem('m10_auth_user', JSON.stringify(user));
+  };
+
+  // User CRUD handlers (Users & Security module)
+  const handleCreateUser = async (data: any) => {
+    const newUser = await api.createUser(data);
+    setUsers((prev) => [...prev, newUser]);
+    api.getAuditLogs().then((logs) => setAuditLogs(logs)).catch(() => {});
+  };
+
+  const handleUpdateUser = async (id: string, data: any) => {
+    try {
+      const updated = await api.updateUser(id, data);
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated, ...data } : u)));
+      if (currentUser.id === id) {
+        const merged = { ...currentUser, ...updated, ...data };
+        setCurrentUser(merged);
+        localStorage.setItem('m10_auth_user', JSON.stringify(merged));
+      }
+    } catch {
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...data } : u)));
+      if (currentUser.id === id) {
+        const merged = { ...currentUser, ...data };
+        setCurrentUser(merged);
+        localStorage.setItem('m10_auth_user', JSON.stringify(merged));
+      }
+    }
+    api.getAuditLogs().then((logs) => setAuditLogs(logs)).catch(() => {});
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await api.deleteUser(id);
+    } catch {}
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    api.getAuditLogs().then((logs) => setAuditLogs(logs)).catch(() => {});
+  };
+
   // Handle Login & Logout
   const handleLoginSuccess = (user: SystemUser) => {
+    if (user.status === 'inhabilitado') {
+      alert('Acceso denegado: Tu cuenta de usuario se encuentra inhabilitada.');
+      return;
+    }
     setCurrentUser(user);
     setIsAuthenticated(true);
     localStorage.setItem('m10_auth_token', 'true');
@@ -228,7 +475,7 @@ export default function App() {
       <Sidebar
         activeTab={currentModule as any}
         onSelectTab={(mod) => {
-          setCurrentModule(mod);
+          navigateTo(mod);
           setIsSidebarOpen(false);
         }}
         activeAlertsCount={activeAlertsCount}
@@ -245,7 +492,7 @@ export default function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         
-        {/* Top Header */}
+        {/* Top Header with Back Button and Breadcrumbs */}
         <Header
           currentUser={currentUser}
           onRoleChange={handleRoleChange}
@@ -257,7 +504,11 @@ export default function App() {
           criticalAlertsCount={criticalAlertsCount}
           onLogout={handleLogout}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-          onNavigateAlerts={() => setCurrentModule('alerts')}
+          onNavigateAlerts={() => navigateTo('alerts')}
+          currentModule={currentModule}
+          canGoBack={navigationHistory.length > 1 || currentModule !== 'dashboard'}
+          onGoBack={handleGoBack}
+          onNavigate={navigateTo}
         />
 
         {/* Dynamic View Router */}
@@ -268,8 +519,12 @@ export default function App() {
               alerts={alerts}
               tunnels={tunnels}
               connections={connections}
-              onNavigate={setCurrentModule}
-              onSelectWorker={handleSelectWorker}
+              onNavigate={navigateTo}
+              onNavigateToTab={navigateTo}
+              onSelectWorker={(w) => {
+                handleSelectWorker(w);
+                navigateTo('monitoring');
+              }}
             />
           )}
 
@@ -284,11 +539,11 @@ export default function App() {
               onSelectWorker={handleSelectWorker}
               onSelectWorkerForMonitoring={(w) => {
                 setSelectedWorker(w);
-                setCurrentModule('monitoring');
+                navigateTo('monitoring');
               }}
               onNavigateToMonitoring={(w) => {
                 setSelectedWorker(w);
-                setCurrentModule('monitoring');
+                navigateTo('monitoring');
               }}
               onOpenPairingModal={(w) => {
                 setSelectedWorker(w);
@@ -313,7 +568,7 @@ export default function App() {
               connections={connections}
               onTunnelsChange={setTunnels}
               onConnectionsChange={setConnections}
-              onNavigateToMonitoring={() => setCurrentModule('monitoring')}
+              onNavigateToMonitoring={() => navigateTo('monitoring')}
             />
           )}
 
@@ -349,12 +604,17 @@ export default function App() {
             />
           )}
 
-          {currentModule === 'users' && (
+          {(currentModule === 'users' || currentModule === 'security') && (
             <UsersSecurityView
               users={users}
               auditLogs={auditLogs}
               currentUser={currentUser}
               onRoleChange={handleRoleChange}
+              onSelectUserSession={handleSelectUserSession}
+              onCreateUser={handleCreateUser}
+              onUpdateUser={handleUpdateUser}
+              onDeleteUser={handleDeleteUser}
+              onReloadUsers={loadData}
             />
           )}
         </main>
