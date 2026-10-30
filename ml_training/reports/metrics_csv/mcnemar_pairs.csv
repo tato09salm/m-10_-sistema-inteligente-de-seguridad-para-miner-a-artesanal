@@ -1,0 +1,11 @@
+b_A_ok_B_bad,c_A_bad_B_ok,n_discordant,p_mcnemar_exact,significant_0.05,model_a,model_b,metric,unit
+599,387,986,1.529129959552169e-11,True,Puro_1D_CNN,Puro_Bi_LSTM,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+428,422,850,0.8638445957781864,False,Puro_1D_CNN,Puro_GRU,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+742,308,1050,6.582494438514326e-42,True,Puro_1D_CNN,Hibrido_CNN_LSTM,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+862,335,1197,5.912511926449074e-54,True,Puro_1D_CNN,Hibrido_Attention_ResGRU,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+389,595,984,5.4310048655808125e-11,True,Puro_Bi_LSTM,Puro_GRU,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+714,492,1206,1.7546078467513222e-10,True,Puro_Bi_LSTM,Hibrido_CNN_LSTM,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+907,592,1499,3.9584821796319727e-16,True,Puro_Bi_LSTM,Hibrido_Attention_ResGRU,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+674,246,920,1.0479458860670496e-46,True,Puro_GRU,Hibrido_CNN_LSTM,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+803,282,1085,1.9765460049100234e-58,True,Puro_GRU,Hibrido_Attention_ResGRU,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"
+618,525,1143,0.006478998346778281,True,Hibrido_CNN_LSTM,Hibrido_Attention_ResGRU,acierto por ventana (correct/incorrect),"ventana (fuera de fold, n=33819)"

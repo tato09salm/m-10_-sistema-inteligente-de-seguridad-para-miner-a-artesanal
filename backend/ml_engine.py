@@ -8,7 +8,17 @@ import numpy as np
 # Suppress TensorFlow verbose info logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-MODEL_PATH = Path(__file__).resolve().parent.parent / "ml_training" / "saved_models" / "Puro_1D_CNN.h5"
+MODEL_PATH = Path(__file__).resolve().parent.parent / "ml_training" / "saved_models" / "Puro_1D_CNN_grouped.h5"
+
+# Normalización por canal del ENTRENAMIENTO (fit SOLO con el train del desarrollo;
+# ver ml_training/reports/final/Puro_1D_CNN/metrics_test.json).
+# El modelo fue entrenado con el dataset REAL de SisFall: aceleración en g,
+# giroscopio en °/s. El backend recibe aceleración en m/s² -> se convierte.
+NORMALIZATION_MEAN = [0.01190885, -0.81533903, -0.13158487, -0.39926225,
+                      2.04348063, -0.32507378, 1.06319284, 38.38370514]
+NORMALIZATION_STD = [0.35913432, 0.55252439, 0.45433924, 43.27632141,
+                     34.63811111, 30.17850304, 0.43993485, 50.13273239]
+_G_TO_MS2 = 9.80665
 
 _neural_model = None
 
@@ -37,7 +47,13 @@ def calculate_tilt_angle(x: float, y: float, z: float) -> float:
     cos_theta = min(1.0, max(-1.0, abs(z) / norm))
     return math.degrees(math.acos(cos_theta))
 
-CLASS_NAMES = ["actividad_normal", "posible_caida", "inmovilidad_prolongada", "movimiento_inusual"]
+# Modelo de 3 salidas entrenado con partición POR SUJETO sobre el dataset REAL
+# de SisFall (sin fuga de información):
+#   0 actividad_normal | 1 posible_caida | 2 baja_actividad (D12-D14).
+# NOTA: la etiqueta "inmovilidad_prolongada" ya NO es una salida del modelo;
+# la inmovilidad se trata como regla heurística aparte (ver abajo).
+# La clase "movimiento_inusual" solo existe como regla heurística NO VALIDADA.
+CLASS_NAMES = ["actividad_normal", "posible_caida", "baja_actividad"]
 
 def classify_sensor_stream(
     current: Dict[str, Any],
@@ -96,37 +112,58 @@ def classify_sensor_stream(
     model = get_loaded_model()
     neural_activity = None
     neural_confidence = 0.95
+    neural_probs = None
 
     if model is not None and len(recent_window) >= 8:
         try:
             # Construct a 128-step input window tensor from real recent history
+            # Unidades de ENTRADA del modelo: aceleración en g, giroscopio °/s.
             window_pts = []
-            for item in recent_window[-127:]:
-                ax_i = float(item.get("accelX", 0.0))
-                ay_i = float(item.get("accelY", 9.81))
-                az_i = float(item.get("accelZ", 0.0))
-                gx_i = float(item.get("gyroAlpha", 0.0))
-                gy_i = float(item.get("gyroBeta", 0.0))
-                gz_i = float(item.get("gyroGamma", 0.0))
-                svm_i = calculate_svm(ax_i, ay_i, az_i)
-                gnorm_i = calculate_gyro_norm(gx_i, gy_i, gz_i)
+            for item in recent_window[-128:]:
+                ax_i = float(item.get("accelX", 0.0)) / _G_TO_MS2   # m/s² -> g
+                ay_i = float(item.get("accelY", 9.81)) / _G_TO_MS2  # m/s² -> g
+                az_i = float(item.get("accelZ", 0.0)) / _G_TO_MS2   # m/s² -> g
+                gx_i = float(item.get("gyroAlpha", 0.0))            # °/s
+                gy_i = float(item.get("gyroBeta", 0.0))             # °/s
+                gz_i = float(item.get("gyroGamma", 0.0))            # °/s
+                svm_i = calculate_svm(ax_i, ay_i, az_i)             # g
+                gnorm_i = calculate_gyro_norm(gx_i, gy_i, gz_i)     # °/s
                 window_pts.append([ax_i, ay_i, az_i, gx_i, gy_i, gz_i, svm_i, gnorm_i])
-            
-            # Pad with repeating actual history points
-            while len(window_pts) < 127:
-                window_pts.insert(0, window_pts[0] if window_pts else [x, y, z, alpha, beta, gamma, svm, gyro_norm])
-            window_pts.append([x, y, z, alpha, beta, gamma, svm, gyro_norm])
-            
-            input_tensor = np.array([window_pts[-128:]], dtype=np.float32)
+
+            # Ventana de las últimas 128 muestras DISTINTAS cuando el búfer
+            # está lleno (recent_window ya incluye el punto actual como su
+            # última entrada). Con búfer corto (<128), rellenar repitiendo por
+            # el frente el punto más antiguo y añadir el punto actual como
+            # muestra 128.
+            if len(recent_window) < 128:
+                current_pt = [x / _G_TO_MS2, y / _G_TO_MS2, z / _G_TO_MS2,
+                              alpha, beta, gamma,
+                              svm / _G_TO_MS2, gyro_norm]
+                while len(window_pts) < 127:
+                    window_pts.insert(0, window_pts[0] if window_pts
+                                      else list(current_pt))
+                window_pts.append(list(current_pt))
+
+            # Normalización por canal (media/DE del train del desarrollo)
+            input_tensor = (np.array([window_pts[-128:]], dtype=np.float32)
+                            - np.asarray(NORMALIZATION_MEAN, dtype=np.float32)) \
+                           / np.asarray(NORMALIZATION_STD, dtype=np.float32)
             probs = model.predict(input_tensor, verbose=0)[0]
+            neural_probs = probs
             pred_class_idx = int(np.argmax(probs))
             neural_confidence = float(probs[pred_class_idx])
             if pred_class_idx < len(CLASS_NAMES):
                 neural_activity = CLASS_NAMES[pred_class_idx]
         except Exception as err:
-            pass
+            print(f"[ML Engine] Aviso: inferencia neuronal omitida ({err}). Se usan reglas cinemáticas.")
 
     # Hybrid Rules & Neural Ensemble
+    # Heurísticas (posible_caida / inmovilidad_prolongada / movimiento_inusual):
+    #   - "posible_caida" e "inmovilidad_prolongada" son reglas de fusión basadas
+    #     en umbrales empíricos de cinemática y temporización.
+    #   - "movimiento_inusual" NO proviene del modelo entrenado y NO ha sido
+    #     validada contra SisFall real: se conserva por compatibilidad y su
+    #     resultado debe interpretarse como provisional (no validado).
     activity = "actividad_normal"
     confidence = 0.92
     risk_level = "bajo"
@@ -152,7 +189,7 @@ def classify_sensor_stream(
         reasoning = f"Inmovilidad absoluta sostenida por más de {round(immobility_sec)} segundos (Varianza: {variance:.3f}). Posible desmayo o atrapamiento."
         recommended_action = "Activar canal de radio de emergencia y despachar supervisor al cuadrante."
     elif svm > 17.0 or gyro_norm > 190.0 or jerk > 30.0 or variance > 8.0:
-        activity = "movimiento_inusual"
+        activity = "movimiento_inusual"  # HEURÍSTICA NO VALIDADA (ver comentario arriba)
         confidence = 0.89
         risk_level = "medio"
         reasoning = f"Aceleración o rotación anómala fuera de umbrales típicos (SVM: {svm:.1f} m/s², Giroscopio: {gyro_norm:.1f}°/s)."
@@ -164,7 +201,7 @@ def classify_sensor_stream(
         reasoning = f"Cinemática estable (SVM: {svm:.1f} m/s², Giroscopio: {gyro_norm:.1f}°/s). Actividad minera estándar."
         recommended_action = "Operación normal."
 
-    return {
+    payload = {
         "activity": activity,
         "confidence": round(confidence, 3),
         "riskLevel": risk_level,
@@ -179,5 +216,12 @@ def classify_sensor_stream(
         "reasoning": reasoning,
         "detectedAt": datetime.now(timezone.utc).isoformat(),
         "recommendedAction": recommended_action,
-        "modelUsed": "SisFall Puro_1D_CNN.h5 + Neural Engine"
+        "modelUsed": "SisFall Puro_1D_CNN_grouped.h5 (dataset real, 3 clases, "
+                     "partición por sujeto)",
     }
+    # Probabilidades softmax del modelo (si la inferencia neuronal se ejecutó)
+    if neural_probs is not None:
+        payload["probabilities"] = {
+            CLASS_NAMES[i]: round(float(neural_probs[i]), 4)
+            for i in range(len(CLASS_NAMES))}
+    return payload

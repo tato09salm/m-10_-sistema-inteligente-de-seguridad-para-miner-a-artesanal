@@ -1,0 +1,22 @@
+{
+  "escenario": "fig6 (caída a pique: pico SVM 32.50 m/s², 380 °/s, inmovilidad post-impacto) vía backend/ml_engine.py",
+  "activity": "posible_caida",
+  "confidence": 0.95,
+  "riskLevel": "critico",
+  "probabilities": {
+    "actividad_normal": 0.0003,
+    "posible_caida": 0.9322,
+    "baja_actividad": 0.0675
+  },
+  "latencia_backend_pc_ms": 39.36744999991788,
+  "latencia_backend_pc_p95_ms": 40.31941999965056,
+  "features": {
+    "svm": 9.81,
+    "maxJerk": 0.0,
+    "gyroMagnitude": 0.0,
+    "immobilityDurationSec": 0,
+    "tiltAngleDeg": 0.0,
+    "vibrationEnergy": 13.888
+  },
+  "nota": "latencia medida en PC (no ESP32-S3); incluye la evaluación de reglas de fusión + la inferencia del modelo"
+}

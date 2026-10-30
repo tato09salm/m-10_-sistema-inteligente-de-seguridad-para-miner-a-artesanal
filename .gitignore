@@ -6,3 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de datos / Datasets
+ml_training/data/

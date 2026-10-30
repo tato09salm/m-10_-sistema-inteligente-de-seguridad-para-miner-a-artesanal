@@ -1,0 +1,1 @@
+Los folds 3 y 4 de esta carpeta pertenecen a un run con asignacion mezclada (esquema de 5 folds ejecutado sobre resultados de 3 folds). NO son validos para el paper; se conserva solo como evidencia. El esquema final del proyecto es StratifiedGroupKFold n_splits=3.

@@ -1,0 +1,7 @@
+registro usado: F01_SA01_R01 (sujeto SA01, actividad F01)
+ventana: 128 pasos a 50 Hz (2,56 s), contiene el pico de SVM
+pico de SVM: 86.2112 m/s² (8.7911 g) en t = 2.2000 s (paso 110 de 128)
+norma del giroscopio en el pico: 239.5742 °/s
+conversión: m/s² = g × 9,80665; canales del dataset:
+  [accel_x, accel_y, accel_z] en g; [gyro_x, gyro_y, gyro_z] en °/s; SVM en g; norma giroscopio en °/s
+pipeline: SisFall real · ventana seleccionada de forma determinista (primer sujeto SA del test con registro F##, ventana que contiene el pico)

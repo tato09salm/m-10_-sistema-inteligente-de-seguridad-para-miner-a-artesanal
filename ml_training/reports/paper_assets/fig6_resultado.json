@@ -1,0 +1,22 @@
+{
+  "modelo": "Puro_1D_CNN",
+  "via": "backend/ml_engine.classify_sensor_stream (end-to-end)",
+  "probabilidades_softmax": {
+    "Actividad normal": 0.0003,
+    "Posible caída": 0.9322,
+    "Baja actividad": 0.0675
+  },
+  "prediccion": 1,
+  "clase_predicha": "Posible caída",
+  "latencia_keras_pc_ms": 5.13122350022968,
+  "latencia_keras_pc_p95_ms": 5.580755000846691,
+  "latencia_tflite_int8_pc_ms": 0.028817500060540624,
+  "latencia_tflite_int8_pc_p95_ms": 0.02890000178012997,
+  "escenario": {
+    "p_impacto": 42,
+    "svm_peak_ms2": 32.49999999999999,
+    "gyro_peak": 380.00000000000006,
+    "t_impacto": 0.84
+  },
+  "nota": "probabilidades obtenidas por la vía del backend (la ventana recorre g→m/s²→g y la que reconstruye el motor difiere en una muestra de la ventana exacta del escenario); latencias medidas en PC (Keras y TFLite Interpreter 1 hilo); NO corresponden a un ESP32-S3"
+}
