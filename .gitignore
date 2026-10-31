@@ -12,6 +12,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
+a<
 # Archivos de datos / Datasets
 ml_training/data/

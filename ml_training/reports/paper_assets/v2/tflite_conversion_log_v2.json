@@ -39,7 +39,7 @@
           "max_prob_diff": 1.1920928955078125e-07,
           "same_classes": true,
           "float32_kb": 1847.9,
-          "int8_kb": 4243.6
+          "int8_kb": 4241.2
         }
       ],
       "chosen_route_int8": "batch1+unroll"

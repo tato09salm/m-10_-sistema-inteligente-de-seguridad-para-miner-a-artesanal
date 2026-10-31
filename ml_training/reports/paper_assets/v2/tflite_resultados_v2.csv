@@ -2,7 +2,7 @@ Modelo,Formato,Convierte,Ruta,Sin_FlexOps,Tamano_KB,Exactitud,F1_macro,Recall_ca
 Puro_1D_CNN,float32,sí,directa,sí,198.5,97.52,95.22,98.0,96.72,98.88
 Puro_1D_CNN,int8,sí,directa,sí,66.0,97.88,95.86,98.13,96.89,98.98
 Puro_Bi_LSTM,float32,sí,batch1,sí,395.6,97.74,95.9,98.93,97.91,99.54
-Puro_Bi_LSTM,int8,sí,batch1+unroll,sí,4243.6,92.41,88.67,98.53,97.39,99.27
+Puro_Bi_LSTM,int8,sí,batch1+unroll,sí,4241.2,92.41,88.67,98.53,97.39,99.27
 Puro_GRU,float32,sí,batch1,sí,220.2,97.59,95.54,98.8,97.73,99.45
 Puro_GRU,int8,sí,batch1+unroll,sí,3167.6,98.0,96.08,98.8,97.73,99.45
 Hibrido_CNN_LSTM,float32,sí,batch1,sí,332.6,98.2,96.49,99.07,98.09,99.62

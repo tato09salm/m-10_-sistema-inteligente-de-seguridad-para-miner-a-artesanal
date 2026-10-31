@@ -1,0 +1,6 @@
+Modelo,Registros_caida,Detectados_ge1_ventana,Prop_ge1,IC95_inf_ge1,IC95_sup_ge1,Detectados_2_ventanas,Prop_2,IC95_inf_2,IC95_sup_2
+Puro_1D_CNN,1798,1783,99.17,98.63,99.53,1688,93.88,92.67,94.95
+Puro_Bi_LSTM,1798,1784,99.22,98.7,99.57,1758,97.78,96.98,98.41
+Puro_GRU,1798,1780,99.0,98.42,99.41,1753,97.5,96.67,98.17
+Hibrido_CNN_LSTM,1798,1790,99.56,99.13,99.81,1764,98.11,97.37,98.69
+Hibrido_Attention_ResGRU,1798,1784,99.22,98.7,99.57,1758,97.78,96.98,98.41

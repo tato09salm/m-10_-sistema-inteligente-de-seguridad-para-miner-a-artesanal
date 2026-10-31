@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: '5. Monitor de IA (ML)',
       shortLabel: 'Monitor IA',
       icon: BrainCircuit,
-      badge: '98.4%',
+      badge: 'SisFall',
       badgeColor: isLight ? 'bg-amber-100 text-amber-800 border-amber-300 font-semibold' : 'bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/40',
     },
     {

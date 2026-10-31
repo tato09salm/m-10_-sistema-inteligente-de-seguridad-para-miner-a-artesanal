@@ -1,0 +1,38 @@
+Prueba,Metrica,UnidadAnalisis,n,Estadistico,p_cruda,p_Bonferroni,Conclusion
+Shapiro-Wilk (Puro_1D_CNN),Exactitud por sujeto,sujeto,38,W=0.5820,3.291e-09,,"Normalidad rechazada (p<0,05)"
+Shapiro-Wilk (Puro_Bi_LSTM),Exactitud por sujeto,sujeto,38,W=0.6047,6.562e-09,,"Normalidad rechazada (p<0,05)"
+Shapiro-Wilk (Puro_GRU),Exactitud por sujeto,sujeto,38,W=0.6320,1.562e-08,,"Normalidad rechazada (p<0,05)"
+Shapiro-Wilk (Hibrido_CNN_LSTM),Exactitud por sujeto,sujeto,38,W=0.6609,4.103e-08,,"Normalidad rechazada (p<0,05)"
+Shapiro-Wilk (Hibrido_Attention_ResGRU),Exactitud por sujeto,sujeto,38,W=0.6582,3.744e-08,,"Normalidad rechazada (p<0,05)"
+Friedman (omnibus no paramétrico),Exactitud por sujeto,sujeto,38,chi2=6.496; W de Kendall=0.043,0.165,,Sin diferencias significativas
+Wilcoxon: Puro_1D_CNN vs Puro_Bi_LSTM,Exactitud por sujeto,sujeto,38,diferencia media=-0.16 pp,0.1198,1,No significativa
+Wilcoxon: Puro_1D_CNN vs Puro_GRU,Exactitud por sujeto,sujeto,38,diferencia media=+0.00 pp,0.5245,1,No significativa
+Wilcoxon: Puro_1D_CNN vs Hibrido_CNN_LSTM,Exactitud por sujeto,sujeto,38,diferencia media=-0.05 pp,0.4095,1,No significativa
+Wilcoxon: Puro_1D_CNN vs Hibrido_Attention_ResGRU,Exactitud por sujeto,sujeto,38,diferencia media=-0.32 pp,0.03774,0.3774,No significativa
+Wilcoxon: Puro_Bi_LSTM vs Puro_GRU,Exactitud por sujeto,sujeto,38,diferencia media=+0.16 pp,0.4642,1,No significativa
+Wilcoxon: Puro_Bi_LSTM vs Hibrido_CNN_LSTM,Exactitud por sujeto,sujeto,38,diferencia media=+0.11 pp,0.9935,1,No significativa
+Wilcoxon: Puro_Bi_LSTM vs Hibrido_Attention_ResGRU,Exactitud por sujeto,sujeto,38,diferencia media=-0.16 pp,0.3842,1,No significativa
+Wilcoxon: Puro_GRU vs Hibrido_CNN_LSTM,Exactitud por sujeto,sujeto,38,diferencia media=-0.05 pp,0.8623,1,No significativa
+Wilcoxon: Puro_GRU vs Hibrido_Attention_ResGRU,Exactitud por sujeto,sujeto,38,diferencia media=-0.32 pp,0.188,1,No significativa
+Wilcoxon: Hibrido_CNN_LSTM vs Hibrido_Attention_ResGRU,Exactitud por sujeto,sujeto,38,diferencia media=-0.27 pp,0.278,1,No significativa
+Friedman (omnibus no paramétrico),Recall de caída por sujeto,sujeto con caídas,24,chi2=42.806; W de Kendall=0.446,1.135e-08,,Diferencias significativas entre los 5 modelos
+Wilcoxon: Puro_1D_CNN vs Puro_Bi_LSTM,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-1.97 pp,3.817e-05,0.0003817,Significativa
+Wilcoxon: Puro_1D_CNN vs Puro_GRU,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-1.72 pp,0.0007162,0.007162,Significativa
+Wilcoxon: Puro_1D_CNN vs Hibrido_CNN_LSTM,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-2.31 pp,3.857e-05,0.0003857,Significativa
+Wilcoxon: Puro_1D_CNN vs Hibrido_Attention_ResGRU,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-1.97 pp,0.0001261,0.001261,Significativa
+Wilcoxon: Puro_Bi_LSTM vs Puro_GRU,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=+0.25 pp,0.6678,1,No significativa
+Wilcoxon: Puro_Bi_LSTM vs Hibrido_CNN_LSTM,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-0.33 pp,0.1377,1,No significativa
+Wilcoxon: Puro_Bi_LSTM vs Hibrido_Attention_ResGRU,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=+0.00 pp,0.793,1,No significativa
+Wilcoxon: Puro_GRU vs Hibrido_CNN_LSTM,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-0.58 pp,0.1343,1,No significativa
+Wilcoxon: Puro_GRU vs Hibrido_Attention_ResGRU,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=-0.25 pp,0.5506,1,No significativa
+Wilcoxon: Hibrido_CNN_LSTM vs Hibrido_Attention_ResGRU,Recall de caída por sujeto,sujeto con caídas,24,diferencia media=+0.33 pp,0.2477,1,No significativa
+McNemar exacto: Puro_1D_CNN vs Puro_Bi_LSTM,Acierto por ventana,ventana (fuera de fold),40707,"b=411, c=487",0.01228,0.1228,No significativa
+McNemar exacto: Puro_1D_CNN vs Puro_GRU,Acierto por ventana,ventana (fuera de fold),40707,"b=385, c=379",0.8565,1,No significativa
+McNemar exacto: Puro_1D_CNN vs Hibrido_CNN_LSTM,Acierto por ventana,ventana (fuera de fold),40707,"b=347, c=379",0.2499,1,No significativa
+McNemar exacto: Puro_1D_CNN vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana (fuera de fold),40707,"b=319, c=447",4.249e-06,4.249e-05,Significativa
+McNemar exacto: Puro_Bi_LSTM vs Puro_GRU,Acierto por ventana,ventana (fuera de fold),40707,"b=471, c=389",0.005712,0.05712,No significativa
+McNemar exacto: Puro_Bi_LSTM vs Hibrido_CNN_LSTM,Acierto por ventana,ventana (fuera de fold),40707,"b=372, c=328",0.104,1,No significativa
+McNemar exacto: Puro_Bi_LSTM vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana (fuera de fold),40707,"b=296, c=348",0.04438,0.4438,No significativa
+McNemar exacto: Puro_GRU vs Hibrido_CNN_LSTM,Acierto por ventana,ventana (fuera de fold),40707,"b=397, c=435",0.1996,1,No significativa
+McNemar exacto: Puro_GRU vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana (fuera de fold),40707,"b=361, c=495",5.248e-06,5.248e-05,Significativa
+McNemar exacto: Hibrido_CNN_LSTM vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana (fuera de fold),40707,"b=253, c=349",0.0001047,0.001047,Significativa

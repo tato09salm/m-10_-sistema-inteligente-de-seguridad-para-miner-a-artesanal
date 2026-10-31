@@ -1,0 +1,3 @@
+Modelo,Formato,Ruta,Convierte,Tamano_KB,Concordancia_con_Keras_pct
+Hibrido_CNN_LSTM,float32,batch1+unroll,sí,407.6,100.0
+Hibrido_CNN_LSTM,int8,batch1+unroll,sí,259.4,98.7

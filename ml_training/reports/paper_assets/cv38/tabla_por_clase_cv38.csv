@@ -1,0 +1,16 @@
+Modelo,Clase,Precision,Recall,F1,Soporte
+Puro_1D_CNN,Actividad normal,98.22,98.54,98.38,33111
+Puro_1D_CNN,Posible caída,97.09,96.52,96.81,3596
+Puro_1D_CNN,Baja actividad,88.56,86.68,87.61,4000
+Puro_Bi_LSTM,Actividad normal,98.78,98.04,98.41,33111
+Puro_Bi_LSTM,Posible caída,97.25,98.5,97.87,3596
+Puro_Bi_LSTM,Baja actividad,86.54,90.95,88.69,4000
+Puro_GRU,Actividad normal,98.56,98.04,98.3,33111
+Puro_GRU,Posible caída,97.44,98.25,97.84,3596
+Puro_GRU,Baja actividad,85.96,89.1,87.5,4000
+Hibrido_CNN_LSTM,Actividad normal,98.74,97.95,98.34,33111
+Hibrido_CNN_LSTM,Posible caída,96.79,98.83,97.8,3596
+Hibrido_CNN_LSTM,Baja actividad,86.2,90.28,88.19,4000
+Hibrido_Attention_ResGRU,Actividad normal,98.8,98.18,98.49,33111
+Hibrido_Attention_ResGRU,Posible caída,97.36,98.5,97.93,3596
+Hibrido_Attention_ResGRU,Baja actividad,87.44,91.02,89.2,4000

@@ -1,0 +1,78 @@
+{
+  "model_id": "Hibrido_CNN_LSTM",
+  "model_file": "Hibrido_CNN_LSTM_cv38_final.h5",
+  "model_size_kb": 1021.0,
+  "trained_with": "38 sujetos (75 % fit / 25 % validación por sujetos)",
+  "fit_subjects": [
+    "SA03",
+    "SA04",
+    "SA05",
+    "SA06",
+    "SA07",
+    "SA08",
+    "SA09",
+    "SA10",
+    "SA12",
+    "SA14",
+    "SA15",
+    "SA16",
+    "SA17",
+    "SA18",
+    "SA19",
+    "SA21",
+    "SA22",
+    "SA23",
+    "SE01",
+    "SE02",
+    "SE04",
+    "SE06",
+    "SE07",
+    "SE08",
+    "SE09",
+    "SE10",
+    "SE13",
+    "SE14"
+  ],
+  "val_subjects": [
+    "SA01",
+    "SA02",
+    "SA11",
+    "SA13",
+    "SA20",
+    "SE03",
+    "SE05",
+    "SE11",
+    "SE12",
+    "SE15"
+  ],
+  "class_weight": {
+    "0": 0.41223917236542174,
+    "1": 3.5746198830409357,
+    "2": 3.395888888888889
+  },
+  "epochs_trained": 20,
+  "train_seconds": 369.7,
+  "normalization": {
+    "mean": [
+      0.0014527755556628108,
+      -0.8217237591743469,
+      -0.1399737149477005,
+      -0.2534436881542206,
+      2.3006606101989746,
+      -0.2107565850019455,
+      1.0670877695083618,
+      37.640743255615234
+    ],
+    "std": [
+      0.36880505084991455,
+      0.5653885006904602,
+      0.44487422704696655,
+      41.73246383666992,
+      35.33156967163086,
+      29.045255661010742,
+      0.4569784700870514,
+      49.14042282104492
+    ]
+  },
+  "nota": "No hay test independiente: las estimaciones de desempeño son las predicciones fuera de fold de la CV (reports/cv38/cv_results)."
+}

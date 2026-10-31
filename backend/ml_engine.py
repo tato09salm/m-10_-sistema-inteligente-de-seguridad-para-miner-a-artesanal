@@ -8,16 +8,20 @@ import numpy as np
 # Suppress TensorFlow verbose info logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-MODEL_PATH = Path(__file__).resolve().parent.parent / "ml_training" / "saved_models" / "Puro_1D_CNN_grouped.h5"
+MODEL_PATH = Path(__file__).resolve().parent.parent / "ml_training" / "saved_models" / "Hibrido_CNN_LSTM_cv38_final.h5"
 
-# Normalización por canal del ENTRENAMIENTO (fit SOLO con el train del desarrollo;
-# ver ml_training/reports/final/Puro_1D_CNN/metrics_test.json).
-# El modelo fue entrenado con el dataset REAL de SisFall: aceleración en g,
-# giroscopio en °/s. El backend recibe aceleración en m/s² -> se convierte.
-NORMALIZATION_MEAN = [0.01190885, -0.81533903, -0.13158487, -0.39926225,
-                      2.04348063, -0.32507378, 1.06319284, 38.38370514]
-NORMALIZATION_STD = [0.35913432, 0.55252439, 0.45433924, 43.27632141,
-                     34.63811111, 30.17850304, 0.43993485, 50.13273239]
+# Normalización por canal calculada SOLO con los sujetos de ajuste (fit) del modelo
+# final (ver ml_training/reports/cv38/final/Hibrido_CNN_LSTM/final_info.json).
+# Modelo final: Hibrido_CNN_LSTM entrenado con los 38 sujetos de SisFall real
+# (aceleración en g, giroscopio en °/s). El backend recibe aceleración en m/s²
+# -> se convierte. No hay test independiente: el desempeño es el de la
+# validación cruzada por sujeto (5 folds, predicciones fuera de fold).
+NORMALIZATION_MEAN = [0.0014527755556628108, -0.8217237591743469, -0.1399737149477005,
+                      -0.2534436881542206, 2.3006606101989746, -0.2107565850019455,
+                      1.0670877695083618, 37.640743255615234]
+NORMALIZATION_STD = [0.36880505084991455, 0.5653885006904602, 0.44487422704696655,
+                     41.73246383666992, 35.33156967163086, 29.045255661010742,
+                     0.4569784700870514, 49.14042282104492]
 _G_TO_MS2 = 9.80665
 
 _neural_model = None
@@ -47,7 +51,7 @@ def calculate_tilt_angle(x: float, y: float, z: float) -> float:
     cos_theta = min(1.0, max(-1.0, abs(z) / norm))
     return math.degrees(math.acos(cos_theta))
 
-# Modelo de 3 salidas entrenado con partición POR SUJETO sobre el dataset REAL
+# Modelo de 3 salidas validado con CV POR SUJETO sobre el dataset REAL
 # de SisFall (sin fuga de información):
 #   0 actividad_normal | 1 posible_caida | 2 baja_actividad (D12-D14).
 # NOTA: la etiqueta "inmovilidad_prolongada" ya NO es una salida del modelo;
@@ -216,8 +220,8 @@ def classify_sensor_stream(
         "reasoning": reasoning,
         "detectedAt": datetime.now(timezone.utc).isoformat(),
         "recommendedAction": recommended_action,
-        "modelUsed": "SisFall Puro_1D_CNN_grouped.h5 (dataset real, 3 clases, "
-                     "partición por sujeto)",
+        "modelUsed": "SisFall Hibrido_CNN_LSTM_cv38_final.h5 (dataset real, 3 clases, "
+                     "validación cruzada por sujeto, 38 sujetos)",
     }
     # Probabilidades softmax del modelo (si la inferencia neuronal se ejecutó)
     if neural_probs is not None:

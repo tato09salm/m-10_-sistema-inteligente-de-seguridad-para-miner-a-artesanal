@@ -1,0 +1,9 @@
+cpu: Intel64 Family 6 Model 183 Stepping 1, GenuineIntel
+machine: AMD64
+python: 3.12.10
+tensorflow: 2.21.0
+numpy: 2.5.4
+os: Windows 11
+plan_de_energia: GUID de plan de energ¡a: 381b4222-f694-41f0-9685-ff5bb260df2e  (Equilibrado)
+aviso: Latencias en PC; NO son latencias del ESP32-S3.
+idle_check: {'cpu_before_pct': 0.7, 'other_python': [], 'skipped': False}

@@ -1,0 +1,6 @@
+Modelo,Arquitectura,Dropout,Optimizador,TasaAprendizaje,Lote,Tamano_h5_KB,Epocas_media_folds,Tiempo_medio_por_fold_s
+Puro_1D_CNN,Conv1D(64)-BN-MaxPool-Conv1D(128)-GAP-Dense,0.3,Adam,0.001,128,632.1,10.8,77.4
+Puro_Bi_LSTM,BiLSTM(64)-Dropout-BiLSTM(32)-Dense,0.3,Adam,0.001,128,1035.6,17.2,838.5
+Puro_GRU,"GRU(64, seq)-Dropout-GRU(64)-Dense",0.3,Adam,0.001,128,556.0,13.4,523.5
+Hibrido_CNN_LSTM,Conv1D(64)-Pool-Conv1D(128)-LSTM(64)-Dense,0.3,Adam,0.001,128,1021.1,13.2,204.3
+Hibrido_Attention_ResGRU,Conv1D-Atención-ResGRU(64)-Dense,0.3,Adam,0.001,128,416.7,18.0,452.8
