@@ -1,0 +1,120 @@
+{
+  "routes": [
+    "directa",
+    "batch1",
+    "batch1+unroll"
+  ],
+  "flex_ops": "no se intentan (no desplegable en TFLite Micro)",
+  "verify": {
+    "n_windows": 256,
+    "tol_prob": 0.0001
+  },
+  "models": {
+    "Puro_1D_CNN": {
+      "attempts": [
+        {
+          "route": "directa",
+          "float32_kb": 198.5,
+          "int8_kb": 66.0
+        }
+      ],
+      "chosen_route_int8": "directa"
+    },
+    "Puro_Bi_LSTM": {
+      "attempts": [
+        {
+          "route": "directa",
+          "float32_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')",
+          "int8_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')"
+        },
+        {
+          "route": "batch1",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 395.6,
+          "int8_error": "RuntimeError('el conversor terminó con código 3221225477 (¿caída interna de TensorFlow?)   warnings.warn(')"
+        },
+        {
+          "route": "batch1+unroll",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 1847.9,
+          "int8_kb": 4243.6
+        }
+      ],
+      "chosen_route_int8": "batch1+unroll"
+    },
+    "Puro_GRU": {
+      "attempts": [
+        {
+          "route": "directa",
+          "float32_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')",
+          "int8_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')"
+        },
+        {
+          "route": "batch1",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 220.2,
+          "int8_error": "RuntimeError('el conversor terminó con código 3221225477 (¿caída interna de TensorFlow?)   warnings.warn(')"
+        },
+        {
+          "route": "batch1+unroll",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 897.8,
+          "int8_kb": 3167.6
+        }
+      ],
+      "chosen_route_int8": "batch1+unroll"
+    },
+    "Hibrido_CNN_LSTM": {
+      "attempts": [
+        {
+          "route": "directa",
+          "float32_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')",
+          "int8_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')"
+        },
+        {
+          "route": "batch1",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 332.6,
+          "int8_error": "RuntimeError('el conversor terminó con código 3221225477 (¿caída interna de TensorFlow?)   warnings.warn(')"
+        },
+        {
+          "route": "batch1+unroll",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 408.7,
+          "int8_kb": 263.5
+        }
+      ],
+      "chosen_route_int8": "batch1+unroll"
+    },
+    "Hibrido_Attention_ResGRU": {
+      "attempts": [
+        {
+          "route": "directa",
+          "float32_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')",
+          "int8_error": "RuntimeError('el conversor terminó con código 1 (¿caída interna de TensorFlow?) <unknown>:0: error: Lowering tensor list ops is failed. Please consider using Select TF ops and disabling `_experimental_lower_tensor_list_ops` flag in the TFLite converter object. For example, conver')"
+        },
+        {
+          "route": "batch1",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 171.5,
+          "int8_error": "RuntimeError('el conversor terminó con código 3221225477 (¿caída interna de TensorFlow?)   warnings.warn(')"
+        },
+        {
+          "route": "batch1+unroll",
+          "max_prob_diff": 1.1920928955078125e-07,
+          "same_classes": true,
+          "float32_kb": 540.0,
+          "int8_kb": 1899.9
+        }
+      ],
+      "chosen_route_int8": "batch1+unroll"
+    }
+  }
+}

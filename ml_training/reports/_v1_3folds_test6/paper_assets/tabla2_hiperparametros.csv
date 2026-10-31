@@ -1,0 +1,6 @@
+Modelo,Arquitectura,Dropout,Optimizador,TasaAprendizaje,Lote,Tamano_h5_KB,Epocas_final,Epocas_CV_media,Tiempo_entrenamiento_final_s
+Puro_1D_CNN,1. Puro: 1D-CNN (Red Convolucional 1D),0.3,Adam,0.001,128,632.1,8,10.0,93.23
+Puro_Bi_LSTM,2. Puro: Bi-LSTM (Bidirectional LSTM),0.3,Adam,0.001,128,1035.6,20,16.0,1450.33
+Puro_GRU,3. Puro: GRU (Gated Recurrent Unit),0.3,Adam,0.001,128,556.0,16,19.0,838.21
+Hibrido_CNN_LSTM,4. Hibrido: CNN-LSTM (Convolucional + Recurrente),0.3,Adam,0.001,128,1021.1,11,9.67,144.73
+Hibrido_Attention_ResGRU,5. Hibrido: Conv1D + Attention + Residual GRU,0.3,Adam,0.001,128,416.7,9,10.67,196.74

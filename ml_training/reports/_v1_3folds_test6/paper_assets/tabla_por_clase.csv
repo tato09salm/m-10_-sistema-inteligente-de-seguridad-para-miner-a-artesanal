@@ -1,0 +1,13 @@
+Modelo,Evaluacion,Clase,Precision,Recall,F1,Soporte
+Puro_1D_CNN,prueba,Actividad normal,98.46,98.52,98.49,5458
+Puro_1D_CNN,prueba,Posible caída,99.86,98.0,98.92,750
+Puro_1D_CNN,prueba,Baja actividad,87.55,88.97,88.26,680
+Puro_1D_CNN,OOF (fuera de fold),Actividad normal,98.15,98.38,98.26,27653
+Puro_1D_CNN,OOF (fuera de fold),Posible caída,97.88,94.1,95.95,2846
+Puro_1D_CNN,OOF (fuera de fold),Baja actividad,85.76,86.9,86.33,3320
+Puro_1D_CNN,prueba,Actividad normal,98.46,98.52,98.49,5458
+Puro_1D_CNN,prueba,Posible caída,99.86,98.0,98.92,750
+Puro_1D_CNN,prueba,Baja actividad,87.55,88.97,88.26,680
+Puro_1D_CNN,OOF (fuera de fold),Actividad normal,98.15,98.38,98.26,27653
+Puro_1D_CNN,OOF (fuera de fold),Posible caída,97.88,94.1,95.95,2846
+Puro_1D_CNN,OOF (fuera de fold),Baja actividad,85.76,86.9,86.33,3320

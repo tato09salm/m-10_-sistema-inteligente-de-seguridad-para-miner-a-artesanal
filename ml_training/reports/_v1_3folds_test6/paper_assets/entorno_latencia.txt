@@ -1,0 +1,7 @@
+cpu: Intel64 Family 6 Model 183 Stepping 1, GenuineIntel
+machine: AMD64
+python: 3.12.10
+tensorflow: 2.21.0
+numpy: 2.5.4
+os: Windows 11
+aviso: Las latencias son en PC y NO en ESP32-S3. Medición con CPU en reposo.

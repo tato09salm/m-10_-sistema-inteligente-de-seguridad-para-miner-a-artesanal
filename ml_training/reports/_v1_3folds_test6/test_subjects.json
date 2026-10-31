@@ -1,0 +1,21 @@
+{
+  "seed": 42,
+  "method": "RandomState(42): (1) choice sa_subjects_sorted size=5 replace=False; (2) choice se_pool_sorted (SE sin SE06) size=1",
+  "test_subjects": [
+    "SA16",
+    "SA10",
+    "SA01",
+    "SA09",
+    "SA18",
+    "SE13"
+  ],
+  "sa_chosen": [
+    "SA16",
+    "SA10",
+    "SA01",
+    "SA09",
+    "SA18"
+  ],
+  "se_chosen": "SE13",
+  "se06_in_development": true
+}

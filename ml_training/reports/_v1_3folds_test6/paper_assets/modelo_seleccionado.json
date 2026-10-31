@@ -1,0 +1,4 @@
+{
+  "modelo": "Puro_1D_CNN",
+  "regla": "Puro_1D_CNN: Hibrido_CNN_LSTM no cumple la regla (int8 completo sin Flex y caída de recall ≤1 pp)"
+}

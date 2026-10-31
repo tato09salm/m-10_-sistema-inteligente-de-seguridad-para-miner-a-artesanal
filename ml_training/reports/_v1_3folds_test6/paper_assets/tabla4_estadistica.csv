@@ -1,0 +1,38 @@
+Prueba,Metrica,UnidadAnalisis,n,Estadistico,p_cruda,p_Bonferroni,Conclusion
+Shapiro-Wilk,Exactitud,sujeto,32,0.7174,1.6002245545372424e-06,,distribución NO normal (se justifica el uso de pruebas no paramétricas)
+Shapiro-Wilk,Exactitud,sujeto,32,0.6,3.7511974633986e-08,,distribución NO normal (se justifica el uso de pruebas no paramétricas)
+Shapiro-Wilk,Exactitud,sujeto,32,0.7462,4.613482112136244e-06,,distribución NO normal (se justifica el uso de pruebas no paramétricas)
+Shapiro-Wilk,Exactitud,sujeto,32,0.7728,1.3051169723062784e-05,,distribución NO normal (se justifica el uso de pruebas no paramétricas)
+Shapiro-Wilk,Exactitud,sujeto,32,0.8039,4.821059418544327e-05,,distribución NO normal (se justifica el uso de pruebas no paramétricas)
+Friedman,Exactitud,sujeto,32,26.3205,2.726744074935943e-05,,diferencias globales significativas entre modelos (p<0.05)
+Friedman,Recall de caída,sujeto,19,21.3856,0.00026551577697848017,,diferencias globales significativas entre modelos (p<0.05)
+Wilcoxon Puro_1D_CNN vs Puro_Bi_LSTM,Exactitud,sujeto,32,198.0,0.6732337513450831,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Puro_GRU,Exactitud,sujeto,32,196.0,0.8733456270825131,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Hibrido_CNN_LSTM,Exactitud,sujeto,32,58.5,0.00020430386853738185,0.002043,significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Hibrido_Attention_ResGRU,Exactitud,sujeto,32,114.0,0.008625087683582656,0.086251,no significativa tras Bonferroni
+Wilcoxon Puro_Bi_LSTM vs Puro_GRU,Exactitud,sujeto,32,175.0,0.23667571076984595,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_Bi_LSTM vs Hibrido_CNN_LSTM,Exactitud,sujeto,32,89.0,0.00183368623472765,0.018337,significativa tras Bonferroni
+Wilcoxon Puro_Bi_LSTM vs Hibrido_Attention_ResGRU,Exactitud,sujeto,32,150.5,0.05603609035740345,0.560361,no significativa tras Bonferroni
+Wilcoxon Puro_GRU vs Hibrido_CNN_LSTM,Exactitud,sujeto,32,37.0,2.1847334362768927e-05,0.000218,significativa tras Bonferroni
+Wilcoxon Puro_GRU vs Hibrido_Attention_ResGRU,Exactitud,sujeto,32,80.0,0.0009939997481557268,0.00994,significativa tras Bonferroni
+Wilcoxon Hibrido_CNN_LSTM vs Hibrido_Attention_ResGRU,Exactitud,sujeto,32,232.5,0.7613099582296963,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Puro_Bi_LSTM,Recall de caída,sujeto (con caídas),19,8.5,0.005694189203237513,0.056942,no significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Puro_GRU,Recall de caída,sujeto (con caídas),19,2.0,0.001502895874475944,0.015029,significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Hibrido_CNN_LSTM,Recall de caída,sujeto (con caídas),19,19.0,0.019728824598012513,0.197288,no significativa tras Bonferroni
+Wilcoxon Puro_1D_CNN vs Hibrido_Attention_ResGRU,Recall de caída,sujeto (con caídas),19,70.0,0.4993001442920897,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_Bi_LSTM vs Puro_GRU,Recall de caída,sujeto (con caídas),19,8.0,0.024763878224479712,0.247639,no significativa tras Bonferroni
+Wilcoxon Puro_Bi_LSTM vs Hibrido_CNN_LSTM,Recall de caída,sujeto (con caídas),19,21.5,0.5378995339339048,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_Bi_LSTM vs Hibrido_Attention_ResGRU,Recall de caída,sujeto (con caídas),19,33.5,0.0737048508255678,0.737049,no significativa tras Bonferroni
+Wilcoxon Puro_GRU vs Hibrido_CNN_LSTM,Recall de caída,sujeto (con caídas),19,12.0,0.11271708474094366,1.0,no significativa tras Bonferroni
+Wilcoxon Puro_GRU vs Hibrido_Attention_ResGRU,Recall de caída,sujeto (con caídas),19,10.0,0.0026545775189251684,0.026546,significativa tras Bonferroni
+Wilcoxon Hibrido_CNN_LSTM vs Hibrido_Attention_ResGRU,Recall de caída,sujeto (con caídas),19,15.0,0.0035339443360785784,0.035339,significativa tras Bonferroni
+McNemar Puro_1D_CNN vs Puro_Bi_LSTM,Acierto por ventana,ventana,33819,,1.529129959552169e-11,,"b=599, c=387; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_1D_CNN vs Puro_GRU,Acierto por ventana,ventana,33819,,0.8638445957781864,,"b=428, c=422; sin diferencia significativa"
+McNemar Puro_1D_CNN vs Hibrido_CNN_LSTM,Acierto por ventana,ventana,33819,,6.582494438514326e-42,,"b=742, c=308; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_1D_CNN vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana,33819,,5.912511926449074e-54,,"b=862, c=335; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_Bi_LSTM vs Puro_GRU,Acierto por ventana,ventana,33819,,5.4310048655808125e-11,,"b=389, c=595; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_Bi_LSTM vs Hibrido_CNN_LSTM,Acierto por ventana,ventana,33819,,1.7546078467513222e-10,,"b=714, c=492; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_Bi_LSTM vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana,33819,,3.9584821796319727e-16,,"b=907, c=592; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_GRU vs Hibrido_CNN_LSTM,Acierto por ventana,ventana,33819,,1.0479458860670496e-46,,"b=674, c=246; diferencia emparejada significativa (p<0.05)"
+McNemar Puro_GRU vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana,33819,,1.9765460049100234e-58,,"b=803, c=282; diferencia emparejada significativa (p<0.05)"
+McNemar Hibrido_CNN_LSTM vs Hibrido_Attention_ResGRU,Acierto por ventana,ventana,33819,,0.006478998346778281,,"b=618, c=525; diferencia emparejada significativa (p<0.05)"

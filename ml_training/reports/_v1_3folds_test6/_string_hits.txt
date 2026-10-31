@@ -1,0 +1,97 @@
+app.py:215: [98.4] {"Modelo": "Puro_1D_CNN", "Trial": 1, "Learning Rate": 0.01, "Batch Size": 64, "Optimizador": "Adam", "Dropout
+app.py:392: [Inmovilidad Prolongada] {"Evento en Mina": "Atrapamiento por derrumbe / Desmayo", "Manifestación Cinemática": "Varianza nula en aceler
+app.py:439: [Inmovilidad Prolongada] class_names = ["Actividad Normal", "Posible Caída", "Inmovilidad Prolongada", "Movimiento Inusual"]
+app.py:531: [inmovilidad_prolongada] dist_data = {"actividad_normal": 9580, "posible_caida": 2280, "inmovilidad_prolongada": 8204}
+app.py:546: [Inmovilidad Prolongada] "Inmovilidad Prolongada": "#e9c46a",
+app.py:564: [Inmovilidad Prolongada] "Inmovilidad Prolongada": "#e9c46a",
+app.py:778: [Inmovilidad Prolongada] class_labels = ["Actividad Normal", "Posible Caída", "Inmovilidad Prolongada"]
+app.py:797: [inmovilidad_prolongada] for cname in ["actividad_normal", "posible_caida", "inmovilidad_prolongada"]:
+app.py:990: [Inmovilidad Prolongada] "Atrapamiento / Inmovilidad prolongada por colapso de roca",
+app.py:1004: [Inmovilidad Prolongada] prob_dict = {"Actividad Normal": 0.01, "Posible Caída": 0.98, "Inmovilidad Prolongada": 0.01}
+app.py:1011: [Inmovilidad Prolongada] pred_class = "Inmovilidad Prolongada"
+app.py:1012: [Inmovilidad Prolongada] prob_dict = {"Actividad Normal": 0.03, "Posible Caída": 0.00, "Inmovilidad Prolongada": 0.97}
+app.py:1019: [Inmovilidad Prolongada] prob_dict = {"Actividad Normal": 0.15, "Posible Caída": 0.05, "Inmovilidad Prolongada": 0.02, "Movimiento Inus
+app.py:1026: [Inmovilidad Prolongada] prob_dict = {"Actividad Normal": 0.96, "Posible Caída": 0.02, "Inmovilidad Prolongada": 0.02}
+app.py:1052: [Inmovilidad Prolongada] "Inmovilidad Prolongada": "#e9c46a",
+app.py:1221: [Inmovilidad Prolongada] class_names_f1 = ["Actividad Normal", "Posible Caída", "Inmovilidad Prolongada", "Movimiento Inusual"]
+app.py:1376: [inmovilidad_prolongada] for cname in ["actividad_normal", "posible_caida", "inmovilidad_prolongada"]:
+index.html:7: [Inmovilidad Prolongada] <meta name="description" content="Sistema integral de seguridad y monitoreo inteligente con IA para minería ar
+index.html:9: [Inmovilidad Prolongada] <meta property="og:description" content="Sistema integral de seguridad y monitoreo inteligente con IA para min
+metadata.json:3: [Inmovilidad Prolongada] "description": "Sistema integral de seguridad y monitoreo inteligente con IA para minería artesanal mediante s
+README.md:3: [gemelo digital] > **Plataforma integral de monitoreo en tiempo real, detección predictiva de caídas e inmovilidad y gestión de
+README.md:17: [gemelo digital] 10. [Plataforma Web de Operaciones y Gemelo Digital 3D](#-plataforma-web-de-operaciones-y-gemelo-digital-3d)
+README.md:51: [gemelo digital] │ • Metodología CRISP-DM paso a paso     │                     │ • Gemelo Digital 3D de Socavones       │
+README.md:82: [Inmovilidad Prolongada] - Mapeo de actividades mineras a 4 clases analíticas: `Actividad Normal (0)`, `Posible Caída (1)`, `Inmovilida
+README.md:99: [gemelo digital] - Integración con el motor de telemetría y gemelo digital minero.
+README.md:192: [gemelo digital] ## 🌐 Plataforma Web de Operaciones y Gemelo Digital 3D
+README.md:196: [gemelo digital] - **Gemelo Digital 3D de la Mina (`MineMap3D.tsx`):**
+README.md:245: [gemelo digital] Three3D[Gemelo Digital 3D Three.js]
+README.md:385: [gemelo digital] │   │   ├── MineMap3D.tsx       # Gemelo digital 3D de la mina con Three.js
+reports_generator.py:82: [Inmovilidad Prolongada] "desc": "Evolución temporal simultánea de 8 señales inerciales durante eventos de Caída Abrupta vs Inmovilidad
+server.ts:262: [inmovilidad_prolongada] if (aiResult.activity === 'posible_caida' || aiResult.activity === 'inmovilidad_prolongada' || (aiResult.activ
+server.ts:263: [inmovilidad_prolongada] const priority = aiResult.activity === 'posible_caida' ? 'critica' : aiResult.activity === 'inmovilidad_prolon
+server.ts:266: [inmovilidad_prolongada] : aiResult.activity === 'inmovilidad_prolongada'
+server.ts:267: [Inmovilidad Prolongada] ? `Inmovilidad Prolongada Detectada (${aiResult.features.immobilityDurationSec}s)`
+server.ts:377: [inmovilidad_prolongada] const immobilityCount = alerts.filter(a => a.activityType === 'inmovilidad_prolongada').length;
+server.ts:544: [inmovilidad_prolongada] } else if (lastAct === 'inmovilidad_prolongada') {
+server.ts:546: [Inmovilidad Prolongada] ⚠️ ALERTA DE INMOVILIDAD PROLONGADA
+viteApiPlugin.ts:444: [inmovilidad_prolongada] } else if (lastAct === 'inmovilidad_prolongada') {
+viteApiPlugin.ts:446: [Inmovilidad Prolongada] ⚠️ ALERTA DE INMOVILIDAD PROLONGADA
+viteApiPlugin.ts:910: [inmovilidad_prolongada] aiResult.activity === 'inmovilidad_prolongada' ||
+viteApiPlugin.ts:916: [inmovilidad_prolongada] : aiResult.activity === 'inmovilidad_prolongada'
+viteApiPlugin.ts:922: [inmovilidad_prolongada] : aiResult.activity === 'inmovilidad_prolongada'
+viteApiPlugin.ts:923: [Inmovilidad Prolongada] ? `Inmovilidad Prolongada Detectada (${aiResult.features.immobilityDurationSec}s)`
+viteApiPlugin.ts:1012: [inmovilidad_prolongada] const immobilityCount = alerts.filter((a) => a.activityType === 'inmovilidad_prolongada').length;
+viteApiPlugin.ts:1200: [gemelo digital] // 10. Socavones CRUD (Gemelo Digital - Persistencia Real en PostgreSQL)
+backend/main.py:533: [inmovilidad_prolongada] if ai_result["activity"] in ["posible_caida", "inmovilidad_prolongada"] or (
+backend/main.py:538: [inmovilidad_prolongada] else "alta" if ai_result["activity"] == "inmovilidad_prolongada"
+backend/main.py:543: [Inmovilidad Prolongada] else f"Inmovilidad Prolongada Detectada ({ai_result['features']['immobilityDurationSec']}s)" if ai_result["act
+backend/main.py:664: [inmovilidad_prolongada] immobility_count = len([a for a in alerts if a.activity_type == "inmovilidad_prolongada"])
+backend/main.py:930: [gemelo digital] {"name": "mine_tunnels", "count": tunnels_count, "description": "Socavones, galerías, rampas y chimeneas para 
+backend/main.py:958: [gemelo digital] # --- 9. Socavones & Red Subterránea (Gemelo Digital 3D) ---
+backend/ml_engine.py:53: [inmovilidad_prolongada] # NOTA: la etiqueta "inmovilidad_prolongada" ya NO es una salida del modelo;
+backend/ml_engine.py:152: [inmovilidad_prolongada] # Heurísticas (posible_caida / inmovilidad_prolongada / movimiento_inusual):
+backend/ml_engine.py:153: [inmovilidad_prolongada] #   - "posible_caida" e "inmovilidad_prolongada" son reglas de fusión basadas
+backend/ml_engine.py:176: [inmovilidad_prolongada] elif immobility_sec >= 30.0 or (variance < 0.02 and 8.5 < svm < 11.0 and immobility_sec >= 20.0) or neural_act
+backend/ml_engine.py:177: [inmovilidad_prolongada] activity = "inmovilidad_prolongada"
+backend/models.py:132: [inmovilidad_prolongada] activity_type = Column(String(50), nullable=False) # posible_caida, inmovilidad_prolongada, movimiento_inusual
+backend/seed_data.py:63: [inmovilidad_prolongada] last_activity="inmovilidad_prolongada",
+backend/seed_data.py:197: [inmovilidad_prolongada] act = "inmovilidad_prolongada"
+backend/seed_data.py:250: [inmovilidad_prolongada] activity_type="inmovilidad_prolongada",
+backend/seed_data.py:253: [Inmovilidad Prolongada] title="Inmovilidad Prolongada (>60 segundos)",
+ml_training/view_results.py:57: [inmovilidad_prolongada] for cls_name in ["actividad_normal", "posible_caida", "inmovilidad_prolongada"]:
+src/types.ts:3: [inmovilidad_prolongada] export type ActivityType = 'actividad_normal' | 'movimiento_inusual' | 'posible_caida' | 'inmovilidad_prolonga
+ml_training/reports/models_comparison_report.json:12: [inmovilidad_prolongada] "2": "inmovilidad_prolongada",
+ml_training/reports/models_comparison_report.json:66: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/reports/models_comparison_report.json:131: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/reports/models_comparison_report.json:196: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/reports/models_comparison_report.json:261: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/reports/models_comparison_report.json:326: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/reports/results_for_paper.md:29: [98.4] | Puro_1D_CNN | Normal | 98.46 | 98.52 | 98.49 | 5458 |
+ml_training/reports/results_for_paper.md:35: [98.4] | Puro_GRU | Normal | 98.80 | 98.17 | 98.48 | 5458 |
+ml_training/reports/results_for_paper.md:65: [98.4] | Puro_Bi_LSTM | clean | 375 | 373 | 369 | 99.5% [98.1, 99.9] | 98.4% |
+ml_training/reports/results_for_paper.md:67: [98.4] | Puro_GRU | clean | 375 | 372 | 369 | 99.2% [97.7, 99.8] | 98.4% |
+ml_training/_backup_pre_revision/reports/models_comparison_report.json:12: [inmovilidad_prolongada] "2": "inmovilidad_prolongada",
+ml_training/_backup_pre_revision/reports/models_comparison_report.json:66: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/_backup_pre_revision/reports/models_comparison_report.json:131: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/_backup_pre_revision/reports/models_comparison_report.json:196: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/_backup_pre_revision/reports/models_comparison_report.json:261: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+ml_training/_backup_pre_revision/reports/models_comparison_report.json:326: [inmovilidad_prolongada] "inmovilidad_prolongada": {
+src/components/AIModelView.tsx:230: [inmovilidad_prolongada] .filter(([key]) => ['actividad_normal', 'posible_caida', 'inmovilidad_prolongada'].includes(key))
+src/components/AIModelView.tsx:394: [inmovilidad_prolongada] : liveClassification.activity === 'inmovilidad_prolongada'
+src/components/AIModelView.tsx:403: [inmovilidad_prolongada] {liveClassification.activity === 'inmovilidad_prolongada' && <Clock className="w-5 h-5 text-[#FDBA74]" />}
+src/components/DashboardView.tsx:59: [Inmovilidad Prolongada] { name: 'Inmovilidad Prolongada', value: 5, color: '#F59E0B' },
+src/components/DashboardView.tsx:79: [inmovilidad_prolongada] const immobilityToday = alerts.filter(a => a.type === 'inmovilidad_prolongada').length;
+src/components/HistoryView.tsx:152: [inmovilidad_prolongada] <option value="inmovilidad_prolongada">Solo Inmovilidad &gt;30s</option>
+src/components/HistoryView.tsx:175: [inmovilidad_prolongada] const isImm = point.activityClass === 'inmovilidad_prolongada';
+src/components/MobileTransmitterView.tsx:41: [inmovilidad_prolongada] const [lastActivity, setLastActivity] = useState<'actividad_normal' | 'posible_caida' | 'inmovilidad_prolongad
+src/components/MonitoringView.tsx:382: [inmovilidad_prolongada] preset.expectedActivity === 'inmovilidad_prolongada' ? 'text-[#B87333] font-bold' :
+src/components/ReportsView.tsx:279: [Inmovilidad Prolongada] Evolución diaria de alertas y correlación de caídas e inmovilidad prolongada.
+src/components/Sidebar.tsx:102: [98.4] badge: '98.4%',
+src/components/SmartphoneSimulatorModal.tsx:341: [inmovilidad_prolongada] preset.expectedActivity === 'inmovilidad_prolongada' ? 'text-orange-400' :
+src/lib/mlEngine.ts:97: [inmovilidad_prolongada] activity = 'inmovilidad_prolongada';
+src/lib/mlEngine.ts:177: [inmovilidad_prolongada] expectedActivity: 'inmovilidad_prolongada',
+src/lib/mockData.ts:53: [inmovilidad_prolongada] lastActivity: 'inmovilidad_prolongada',
+src/lib/mockData.ts:224: [inmovilidad_prolongada] activityType: 'inmovilidad_prolongada',
+src/lib/mockData.ts:227: [Inmovilidad Prolongada] title: 'Inmovilidad Prolongada (>60 segundos)',
+src/lib/mockData.ts:439: [inmovilidad_prolongada] act = 'inmovilidad_prolongada';

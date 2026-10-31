@@ -1,0 +1,6 @@
+Modelo,Registros_F_en_prueba,Detectados_1ventana,Detectados_2ventanas,Proporcion_1ventana,IC95_1ventana_inf,IC95_1ventana_sup,Proporcion_2ventanas,IC95_2ventanas_inf,IC95_2ventanas_sup
+Puro_1D_CNN,375,375,360,1.0,0.9902,1.0,0.96,0.9349,0.9774
+Puro_Bi_LSTM,375,373,369,0.9947,0.9809,0.9994,0.984,0.9655,0.9941
+Puro_GRU,375,372,369,0.992,0.9768,0.9983,0.984,0.9655,0.9941
+Hibrido_CNN_LSTM,375,372,371,0.992,0.9768,0.9983,0.9893,0.9729,0.9971
+Hibrido_Attention_ResGRU,375,373,368,0.9947,0.9809,0.9994,0.9813,0.9619,0.9925

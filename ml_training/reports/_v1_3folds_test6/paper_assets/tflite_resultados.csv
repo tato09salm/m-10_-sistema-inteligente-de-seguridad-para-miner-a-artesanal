@@ -1,0 +1,3 @@
+Modelo,Formato,Tamano_KB,Exactitud,F1_macro,Recall_caida,Recall_caida_IC95_inf,Recall_caida_IC95_sup,Convierte_sin_FlexOps
+Puro_1D_CNN,float32,198.5,97.52,95.22,98.0,96.72,98.88,sí
+Puro_1D_CNN,int8,66.0,97.88,95.86,98.13,96.89,98.98,sí
